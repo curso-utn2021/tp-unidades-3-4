@@ -65,20 +65,18 @@ app.get(
     try {
       const query = "SELECT * FROM categorias";
       const respuesta = await qy(query);
+      /*
+transforma
+categorias_id en id
+categorias_nombre en nombre
+*/
 
-      //transformamos categorias_id en id
-      respuesta.forEach((o) => {
-        Object.defineProperty(o, "id", Object.getOwnPropertyDescriptor(o, "categorias_id"));
-        delete o["categorias_id"];
+      let respuesta2 = respuesta.map((item) => {
+        return { id: item.categorias_id, nombre: item.categorias_nombre };
       });
-
-      //transformamos categorias_nombre en nombre
-      respuesta.forEach((o) => {
-        Object.defineProperty(o, "nombre", Object.getOwnPropertyDescriptor(o, "categorias_nombre"));
-        delete o["categorias_nombre"];
-      });
-
-      res.send(respuesta);
+      //Envía la respuesta
+      console.log(respuesta2);
+      res.send(respuesta2);
 
       //fin de try
     } catch (e) {
@@ -102,19 +100,17 @@ app.get(
       if (respuesta.length == 0) {
         throw new Error("No existe ese id de categoría");
       }
-      //transformamos categorias_id en id
-      respuesta.forEach((o) => {
-        Object.defineProperty(o, "id", Object.getOwnPropertyDescriptor(o, "categorias_id"));
-        delete o["categorias_id"];
+
+      /*
+transforma
+categorias_id en id
+categorias_nombre en nombre
+*/
+      let respuesta2 = respuesta.map((item) => {
+        return { id: item.categorias_id, nombre: item.categorias_nombre };
       });
 
-      //transformamos categorias_nombre en nombre
-      respuesta.forEach((o) => {
-        Object.defineProperty(o, "nombre", Object.getOwnPropertyDescriptor(o, "categorias_nombre"));
-        delete o["categorias_nombre"];
-      });
-
-      res.send(respuesta);
+      res.send(respuesta2);
 
       //fin de try
     } catch (e) {
@@ -173,6 +169,13 @@ app.post("/persona", async (req, res) => {
    "el email ya se encuentra registrado", "error inesperado"
    */
 
+  /*
+json de prueba para copiar y pegar en postman
+
+{"nombre":"Gimena","apellido":"García","alias":"Gimenita","email":"gimena.garcia@gmail.com"}
+
+*/
+
   try {
     // verificar que no haya nulos
 
@@ -203,42 +206,27 @@ app.post("/persona", async (req, res) => {
 
     query = "SELECT * FROM prestatarios WHERE prestatarios_email = ?";
     respuesta = await qy(query, [req.body.email.toUpperCase()]);
-
-    // transformo los nombres del JSON a los nombres requeridos por las especificaciones
-
-    //transformamos prestatarios_nombre en nombre
-    respuesta.forEach((o) => {
-      Object.defineProperty(o, "nombre", Object.getOwnPropertyDescriptor(o, "prestatarios_nombre"));
-      delete o["prestatarios_nombre"];
+    /*
+    transforma
+    prestatarios_nombre en nombre
+    prestatarios_apellido en apellido
+    prestatarios_alias en alias
+    prestatarios_email en email
+    prestatarios_id en id
+*/
+    let respuesta2 = respuesta.map((item) => {
+      return {
+        id: item.prestatarios_id,
+        nombre: item.prestatarios_nombre,
+        apellido: item.prestatarios_apellido,
+        alias: item.prestatarios_alias,
+        email: item.prestatarios_email,
+      };
     });
 
-    //transformamos prestatarios_apellido en apellido
-    respuesta.forEach((o) => {
-      Object.defineProperty(o, "apellido", Object.getOwnPropertyDescriptor(o, "prestatarios_apellido"));
-      delete o["prestatarios_apellido"];
-    });
+    // envía la respuesta
 
-    //transformamos prestatarios_alias en alias
-    respuesta.forEach((o) => {
-      Object.defineProperty(o, "alias", Object.getOwnPropertyDescriptor(o, "prestatarios_alias"));
-      delete o["prestatarios_alias"];
-    });
-
-    //transformamos prestatarios_email en email
-    respuesta.forEach((o) => {
-      Object.defineProperty(o, "email", Object.getOwnPropertyDescriptor(o, "prestatarios_email"));
-      delete o["prestatarios_email"];
-    });
-
-    //transformamos prestatarios_id en id
-    respuesta.forEach((o) => {
-      Object.defineProperty(o, "id", Object.getOwnPropertyDescriptor(o, "prestatarios_id"));
-      delete o["prestatarios_id"];
-    });
-
-    // envío la respuesta
-
-    res.send(respuesta);
+    res.send(respuesta2);
 
     //fin de try
   } catch (e) {
@@ -255,37 +243,25 @@ app.get("/persona", async (req, res) => {
     let respuesta = await qy(query);
 
     if (respuesta.length != 0) {
-      //transformamos prestatarios_id en id
-      respuesta.forEach((o) => {
-        Object.defineProperty(o, "id", Object.getOwnPropertyDescriptor(o, "prestatarios_id"));
-        delete o["prestatarios_id"];
+      /*
+transforma 
+prestatarios_nombre en nombre
+prestatarios_apellido en apellido
+prestatarios_alias en alias
+prestatarios_email en email
+prestatarios_id en id
+*/
+      let respuesta2 = respuesta.map((item) => {
+        return {
+          id: item.prestatarios_id,
+          nombre: item.prestatarios_nombre,
+          apellido: item.prestatarios_apellido,
+          alias: item.prestatarios_alias,
+          email: item.prestatarios_email,
+        };
       });
 
-      //transformamos prestatarios_nombre en nombre
-      respuesta.forEach((o) => {
-        Object.defineProperty(o, "nombre", Object.getOwnPropertyDescriptor(o, "prestatarios_nombre"));
-        delete o["prestatarios_nombre"];
-      });
-
-      //transformamos prestatarios_apellido en apellido
-      respuesta.forEach((o) => {
-        Object.defineProperty(o, "apellido", Object.getOwnPropertyDescriptor(o, "prestatarios_apellido"));
-        delete o["prestatarios_apellido"];
-      });
-
-      //transformamos prestatarios_alias en alias
-      respuesta.forEach((o) => {
-        Object.defineProperty(o, "alias", Object.getOwnPropertyDescriptor(o, "prestatarios_alias"));
-        delete o["prestatarios_alias"];
-      });
-
-      //transformamos prestatarios_email en email
-      respuesta.forEach((o) => {
-        Object.defineProperty(o, "email", Object.getOwnPropertyDescriptor(o, "prestatarios_email"));
-        delete o["prestatarios_email"];
-      });
-
-      res.send(respuesta);
+      res.send(respuesta2);
     } //fin de if respuesta.length != 0
     else {
       //si length de respuesta == 0 envío status 413 + array vacío (respuesta)
@@ -315,41 +291,26 @@ app.get("/persona/:id", async (req, res) => {
     }
 
     // Si la persona existe procede enviar los datos
-
-    // Convierte los datos en el formato solicitado
-
-    //transformamos prestatarios_id en id
-    respuesta.forEach((o) => {
-      Object.defineProperty(o, "id", Object.getOwnPropertyDescriptor(o, "prestatarios_id"));
-      delete o["prestatarios_id"];
-    });
-
-    //transformamos prestatarios_nombre en nombre
-    respuesta.forEach((o) => {
-      Object.defineProperty(o, "nombre", Object.getOwnPropertyDescriptor(o, "prestatarios_nombre"));
-      delete o["prestatarios_nombre"];
-    });
-
-    //transformamos prestatarios_apellido en apellido
-    respuesta.forEach((o) => {
-      Object.defineProperty(o, "apellido", Object.getOwnPropertyDescriptor(o, "prestatarios_apellido"));
-      delete o["prestatarios_apellido"];
-    });
-
-    //transformamos prestatarios_alias en alias
-    respuesta.forEach((o) => {
-      Object.defineProperty(o, "alias", Object.getOwnPropertyDescriptor(o, "prestatarios_alias"));
-      delete o["prestatarios_alias"];
-    });
-
-    //transformamos prestatarios_email en email
-    respuesta.forEach((o) => {
-      Object.defineProperty(o, "email", Object.getOwnPropertyDescriptor(o, "prestatarios_email"));
-      delete o["prestatarios_email"];
+    /*
+transfoma
+prestatarios_apellido en apellido
+transforma prestatarios_nombre en nombre
+prestatarios_alias en alias
+prestatarios_email en email
+prestatarios_id en id
+*/
+    let respuesta2 = respuesta.map((item) => {
+      return {
+        id: item.prestatarios_id,
+        nombre: item.prestatarios_nombre,
+        apellido: item.prestatarios_apellido,
+        alias: item.prestatarios_alias,
+        email: item.prestatarios_email,
+      };
     });
 
     // Envía los datos
-    res.send(respuesta);
+    res.send(respuesta2);
     //fin de try
   } catch (e) {
     console.error(e.message);
@@ -364,6 +325,13 @@ app.put(
   el email no se puede modificar. retorna status 200 y el objeto modificado 
   o bien status 413, {mensaje: <descripcion del error>} 
   "error inesperado", "no se encuentra esa persona"
+   */
+
+    /*
+   
+   json para probar desde postman
+{"nombre":"Gimena2","apellido":"García2","alias":"gimenita2","email":"gimena.garcia@gmail.com"}
+
    */
 
     try {
@@ -396,37 +364,25 @@ app.put(
       query = "SELECT * FROM prestatarios WHERE prestatarios_id = ?";
       respuesta = await qy(query, [req.params.id]);
 
-      //transformamos prestatarios_nombre en nombre
-      respuesta.forEach((o) => {
-        Object.defineProperty(o, "nombre", Object.getOwnPropertyDescriptor(o, "prestatarios_nombre"));
-        delete o["prestatarios_nombre"];
+      /*
+transforma 
+prestatarios_nombre en nombre
+prestatarios_apellido en apellido
+prestatarios_alias en alias
+prestatarios_email en email
+prestatarios_id en id
+*/
+      let respuesta2 = respuesta.map((item) => {
+        return {
+          id: item.prestatarios_id,
+          nombre: item.prestatarios_nombre,
+          apellido: item.prestatarios_apellido,
+          alias: item.prestatarios_alias,
+          email: item.prestatarios_email,
+        };
       });
 
-      //transformamos prestatarios_apellido en apellido
-      respuesta.forEach((o) => {
-        Object.defineProperty(o, "apellido", Object.getOwnPropertyDescriptor(o, "prestatarios_apellido"));
-        delete o["prestatarios_apellido"];
-      });
-
-      //transformamos prestatarios_alias en alias
-      respuesta.forEach((o) => {
-        Object.defineProperty(o, "alias", Object.getOwnPropertyDescriptor(o, "prestatarios_alias"));
-        delete o["prestatarios_alias"];
-      });
-
-      //transformamos prestatarios_email en email
-      respuesta.forEach((o) => {
-        Object.defineProperty(o, "email", Object.getOwnPropertyDescriptor(o, "prestatarios_email"));
-        delete o["prestatarios_email"];
-      });
-
-      //transformamos prestatarios_id en id
-      respuesta.forEach((o) => {
-        Object.defineProperty(o, "id", Object.getOwnPropertyDescriptor(o, "prestatarios_id"));
-        delete o["prestatarios_id"];
-      });
-
-      res.send(respuesta);
+      res.send(respuesta2);
       //fin de try
     } catch (e) {
       console.error(e.message);
@@ -492,6 +448,10 @@ app.post(
     
     "no existe la persona indicada"
    */
+    /*
+  JSON para copiar y pegar en postman
+  {"nombre":"libro10", "descripcion":"descripcion10", "categoria_id":1} 
+  */
     try {
       //verificar que no ingresen campos nulos (nombre y categoría)
       if (!req.body.nombre || !req.body.categoria_id) {
@@ -528,38 +488,25 @@ app.post(
 
       query = "SELECT * FROM libros WHERE libros_id = ?";
       respuesta = await qy(query, [identificador]);
-
-      //transformamos libros_id en id
-      respuesta.forEach((o) => {
-        Object.defineProperty(o, "id", Object.getOwnPropertyDescriptor(o, "libros_id"));
-        delete o["libros_id"];
+      /*
+transforma 
+libros_id en id
+libros_nombre en nombre
+libros_descripcion en descripcion
+libros_categoria_id en categoria_id
+libros_prestatario_id en persona_id
+*/
+      let respuesta2 = respuesta.map((item) => {
+        return {
+          id: item.libros_id,
+          nombre: item.libros_nombre,
+          descripcion: item.libros_descripcion,
+          categoria_id: item.libros_categoria_id,
+          persona_id: item.libros_prestatario_id,
+        };
       });
 
-      //transformamos libros_nombre en nombre
-      respuesta.forEach((o) => {
-        Object.defineProperty(o, "nombre", Object.getOwnPropertyDescriptor(o, "libros_nombre"));
-        delete o["libros_nombre"];
-      });
-
-      //transformamos libros_descripcion en descripcion
-      respuesta.forEach((o) => {
-        Object.defineProperty(o, "descripcion", Object.getOwnPropertyDescriptor(o, "libros_descripcion"));
-        delete o["libros_descripcion"];
-      });
-
-      //transformamos libros_categoria_id en categoria_id
-      respuesta.forEach((o) => {
-        Object.defineProperty(o, "categoria_id", Object.getOwnPropertyDescriptor(o, "libros_categoria_id"));
-        delete o["libros_categoria_id"];
-      });
-
-      //transformamos libros_prestatario_id en persona_id
-      respuesta.forEach((o) => {
-        Object.defineProperty(o, "persona_id", Object.getOwnPropertyDescriptor(o, "libros_prestatario_id"));
-        delete o["libros_prestatario_id"];
-      });
-
-      res.send(respuesta);
+      res.send(respuesta2);
 
       //fin de try
     } catch (e) {
@@ -581,37 +528,26 @@ app.get(
       let respuesta = await qy(query);
 
       if (respuesta.length != 0) {
-        //transformamos libros_id en id
-        respuesta.forEach((o) => {
-          Object.defineProperty(o, "id", Object.getOwnPropertyDescriptor(o, "libros_id"));
-          delete o["libros_id"];
+        /*
+transforma 
+libros_id en id
+libros_nombre en nombre
+libros_descripcion en descripcion
+libros_categoria_id en categoria_id
+libros_prestatario_id en persona_id
+*/
+
+        let respuesta2 = respuesta.map((item) => {
+          return {
+            id: item.libros_id,
+            nombre: item.libros_nombre,
+            descripcion: item.libros_descripcion,
+            categoria_id: item.libros_categoria_id,
+            persona_id: item.libros_prestatario_id,
+          };
         });
 
-        //transformamos libros_nombre en nombre
-        respuesta.forEach((o) => {
-          Object.defineProperty(o, "nombre", Object.getOwnPropertyDescriptor(o, "libros_nombre"));
-          delete o["libros_nombre"];
-        });
-
-        //transformamos libros_descripcion en descripcion
-        respuesta.forEach((o) => {
-          Object.defineProperty(o, "descripcion", Object.getOwnPropertyDescriptor(o, "libros_descripcion"));
-          delete o["libros_descripcion"];
-        });
-
-        //transformamos libros_categoria_id en categoria_id
-        respuesta.forEach((o) => {
-          Object.defineProperty(o, "categoria_id", Object.getOwnPropertyDescriptor(o, "libros_categoria_id"));
-          delete o["libros_categoria_id"];
-        });
-
-        //transformamos libros_prestatario_id en persona_id
-        respuesta.forEach((o) => {
-          Object.defineProperty(o, "persona_id", Object.getOwnPropertyDescriptor(o, "libros_prestatario_id"));
-          delete o["libros_prestatario_id"];
-        });
-
-        res.send(respuesta);
+        res.send(respuesta2);
       } //fin de if respuesta.length != 0
       else {
         //si length de respuesta == 0 envío status 413 + array vacío (respuesta)
@@ -645,38 +581,26 @@ app.get(
       }
 
       //Si el libro existe procede enviar la respuesta
+      /*
+transforma 
+libros_id en id
+libros_nombre en nombre
+libros_descripcion en descripcion
+libros_categoria_id en categoria_id
+libros_prestatario_id en persona_id
+*/
 
-      //transformamos libros_id en id
-      respuesta.forEach((o) => {
-        Object.defineProperty(o, "id", Object.getOwnPropertyDescriptor(o, "libros_id"));
-        delete o["libros_id"];
+      let respuesta2 = respuesta.map((item) => {
+        return {
+          id: item.libros_id,
+          nombre: item.libros_nombre,
+          descripcion: item.libros_descripcion,
+          categoria_id: item.libros_categoria_id,
+          persona_id: item.libros_prestatario_id,
+        };
       });
 
-      //transformamos libros_nombre en nombre
-      respuesta.forEach((o) => {
-        Object.defineProperty(o, "nombre", Object.getOwnPropertyDescriptor(o, "libros_nombre"));
-        delete o["libros_nombre"];
-      });
-
-      //transformamos libros_descripcion en descripcion
-      respuesta.forEach((o) => {
-        Object.defineProperty(o, "descripcion", Object.getOwnPropertyDescriptor(o, "libros_descripcion"));
-        delete o["libros_descripcion"];
-      });
-
-      //transformamos libros_categoria_id en categoria_id
-      respuesta.forEach((o) => {
-        Object.defineProperty(o, "categoria_id", Object.getOwnPropertyDescriptor(o, "libros_categoria_id"));
-        delete o["libros_categoria_id"];
-      });
-
-      //transformamos libros_prestatario_id en persona_id
-      respuesta.forEach((o) => {
-        Object.defineProperty(o, "persona_id", Object.getOwnPropertyDescriptor(o, "libros_prestatario_id"));
-        delete o["libros_prestatario_id"];
-      });
-
-      res.send(respuesta);
+      res.send(respuesta2);
 
       //fin de try
     } catch (e) {
@@ -694,7 +618,12 @@ app.put(
       descripcion:string, categoria_id:numero, persona_id:numero/null} modificado 
       o bien status 413, {mensaje: <descripcion del error>} "error inesperado",  
       "solo se puede modificar la descripcion del libro
-   */
+   
+   JSON para prueba desde postman
+
+   {"id": 7, "nombre":null, "descripcion":"nueva descripcion7", "categoria_id":null, "persona_id":null}
+   
+      */
     try {
       //verificar que el libro existe
       let query = "SELECT * FROM libros WHERE libros_id = ?";
@@ -722,37 +651,26 @@ app.put(
       query = "SELECT * FROM libros WHERE libros_id = ?";
       respuesta = await qy(query, [req.params.id]);
 
-      //transformamos libros_id en id
-      respuesta.forEach((o) => {
-        Object.defineProperty(o, "id", Object.getOwnPropertyDescriptor(o, "libros_id"));
-        delete o["libros_id"];
+      /*
+transforma 
+libros_id en id
+libros_nombre en nombre
+libros_descripcion en descripcion
+libros_categoria_id en categoria_id
+libros_prestatario_id en persona_id
+*/
+
+      let respuesta2 = respuesta.map((item) => {
+        return {
+          id: item.libros_id,
+          nombre: item.libros_nombre,
+          descripcion: item.libros_descripcion,
+          categoria_id: item.libros_categoria_id,
+          persona_id: item.libros_prestatario_id,
+        };
       });
 
-      //transformamos libros_nombre en nombre
-      respuesta.forEach((o) => {
-        Object.defineProperty(o, "nombre", Object.getOwnPropertyDescriptor(o, "libros_nombre"));
-        delete o["libros_nombre"];
-      });
-
-      //transformamos libros_descripcion en descripcion
-      respuesta.forEach((o) => {
-        Object.defineProperty(o, "descripcion", Object.getOwnPropertyDescriptor(o, "libros_descripcion"));
-        delete o["libros_descripcion"];
-      });
-
-      //transformamos libros_categoria_id en categoria_id
-      respuesta.forEach((o) => {
-        Object.defineProperty(o, "categoria_id", Object.getOwnPropertyDescriptor(o, "libros_categoria_id"));
-        delete o["libros_categoria_id"];
-      });
-
-      //transformamos libros_prestatario_id en persona_id
-      respuesta.forEach((o) => {
-        Object.defineProperty(o, "persona_id", Object.getOwnPropertyDescriptor(o, "libros_prestatario_id"));
-        delete o["libros_prestatario_id"];
-      });
-
-      res.send(respuesta);
+      res.send(respuesta2);
       //fin de try
     } catch (e) {
       console.error(e.message);
