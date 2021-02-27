@@ -6,7 +6,7 @@ const util = require("util");
 
 const app = express();
 
-//Estas constantes se declaran para que en caso de un error de tipeo salte el error al compilar
+//Estas constantes se declaran para que en caso de un error de tipeo ocurra un error al compilar
 const libros = "LIBROS",
   categorias = "CATEGORIAS",
   prestatarios = "PRESTATARIOS";
@@ -32,18 +32,18 @@ conexion.connect((error) => {
 en los nombres requeridos en la consigna */
 
 function adaptaNombresDeKeysAFormatoSalida(datos, tipo) {
+  let datosProvisorio = [];
   switch (tipo) {
     case "CATEGORIAS":
-      let datos1 = datos.map(
+      datosProvisorio = datos.map(
         (item) => {
           return { id: item.categorias_id, nombre: item.categorias_nombre }; // Fin de la definición del elemento del array
         } //Fin de arrow function de datos.
       ); //Fin de datos.map
-      return datos1;
 
       break; // Fin de case CATEGORIAS
     case "LIBROS":
-      let datos2 = datos.map(
+      datosProvisorio = datos.map(
         (item) => {
           return {
             id: item.libros_id,
@@ -54,11 +54,10 @@ function adaptaNombresDeKeysAFormatoSalida(datos, tipo) {
           }; // Fin de la definición del elemento del array
         } //Fin de arrow function de datos.
       ); //Fin de datos.map
-      return datos2;
 
       break; // Fin de case LIBROS
     case "PRESTATARIOS":
-      let datos3 = datos.map(
+      datosProvisorio = datos.map(
         (item) => {
           return {
             id: item.prestatarios_id,
@@ -69,10 +68,10 @@ function adaptaNombresDeKeysAFormatoSalida(datos, tipo) {
           }; //Fin de la definición del elemento del array
         } //Fin de arrow function de datos.map
       ); // Fin de datos.map
-      return datos3;
 
       break; //Fin de case PRESTATARIOS
   } //Fin de switch
+  return datosProvisorio;
 } //Fin de function adaptaNombresDeKeysAFormatoSalida
 
 app.use(express.json());
