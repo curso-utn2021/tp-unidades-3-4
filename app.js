@@ -6,6 +6,11 @@ const util = require("util");
 
 const app = express();
 
+//Estas constantes se declaran para que en caso de un error de tipeo salte el error al compilar
+const libros = "LIBROS",
+  categorias = "CATEGORIAS",
+  prestatarios = "PRESTATARIOS";
+
 var conexion = mysql.createConnection({
   host: "localhost",
   user: "root",
@@ -13,7 +18,8 @@ var conexion = mysql.createConnection({
   database: "biblioteca",
 });
 
-const qy = util.promisify(conexion.query).bind(conexion); // permite el uso de async-await en la conexion con mysql
+// Permite el uso de async-await en la conexión con mysql
+const qy = util.promisify(conexion.query).bind(conexion);
 
 conexion.connect((error) => {
   if (error) {
@@ -21,6 +27,53 @@ conexion.connect((error) => {
   }
   console.log("Conexión con la base de datos establecida");
 });
+
+/*Esta función transforma los nombres internos de los campos de la base de datos
+en los nombres requeridos en la consigna */
+
+function adaptaNombresDeKeysAFormatoSalida(datos, tipo) {
+  switch (tipo) {
+    case "CATEGORIAS":
+      let datos1 = datos.map(
+        (item) => {
+          return { id: item.categorias_id, nombre: item.categorias_nombre }; // Fin de la definición del elemento del array
+        } //Fin de arrow function de datos.
+      ); //Fin de datos.map
+      return datos1;
+
+      break; // Fin de case CATEGORIAS
+    case "LIBROS":
+      let datos2 = datos.map(
+        (item) => {
+          return {
+            id: item.libros_id,
+            nombre: item.libros_nombre,
+            descripcion: item.libros_descripcion,
+            categoria_id: item.libros_categoria_id,
+            persona_id: item.libros_prestatario_id,
+          }; // Fin de la definición del elemento del array
+        } //Fin de arrow function de datos.
+      ); //Fin de datos.map
+      return datos2;
+
+      break; // Fin de case LIBROS
+    case "PRESTATARIOS":
+      let datos3 = datos.map(
+        (item) => {
+          return {
+            id: item.prestatarios_id,
+            nombre: item.prestatarios_nombre,
+            apellido: item.prestatarios_apellido,
+            alias: item.prestatarios_alias,
+            email: item.prestatarios_email,
+          }; //Fin de la definición del elemento del array
+        } //Fin de arrow function de datos.map
+      ); // Fin de datos.map
+      return datos3;
+
+      break; //Fin de case PRESTATARIOS
+  } //Fin de switch
+} //Fin de function adaptaNombresDeKeysAFormatoSalida
 
 app.use(express.json());
 
@@ -44,18 +97,18 @@ app.post(
         throw new Error("Esta categoria ya existe");
       }
 
-      // si pasó chequeos de que no falten datos y que la categoria no exista previamente
-      //procede la creación de la categoria
+      // Si pasó chequeos de que no falten datos y que la categoría no exista previamente
+      //procede la creación de la categoría
 
       query = "INSERT INTO categorias (categorias_nombre) VALUES (?)";
       respuesta = await qy(query, [req.body.nombre.toUpperCase()]);
       res.send({ id: respuesta.insertId, nombre: req.body.nombre.toUpperCase() });
-      //fin de try
+      //⇙ Fin de try
     } catch (e) {
       console.error(e.message);
       res.status(413).send({ Error: e.message });
-    } //fin de catch
-  } //fin de callback de app.post /categoria
+    } //Fin de catch
+  } //Fin de callback de app.post /categoria
 ); // fin de app.post /categoria
 
 app.get(
@@ -65,26 +118,18 @@ app.get(
     try {
       const query = "SELECT * FROM categorias";
       const respuesta = await qy(query);
-      /*
-transforma
-categorias_id en id
-categorias_nombre en nombre
-*/
 
-      let respuesta2 = respuesta.map((item) => {
-        return { id: item.categorias_id, nombre: item.categorias_nombre };
-      });
       //Envía la respuesta
-      console.log(respuesta2);
-      res.send(respuesta2);
+      console.log(adaptaNombresDeKeysAFormatoSalida(respuesta, categorias));
+      res.send(adaptaNombresDeKeysAFormatoSalida(respuesta, categorias));
 
-      //fin de try
+      //⇙ Fin de try
     } catch (e) {
       console.error(e.message);
       res.status(413).send({ Error: e.message });
-    } //fin de catch
-  } //fin de callback de app.get /categoria
-); //fin de app.get/categoria
+    } //Fin de catch
+  } //Fin de callback de app.get /categoria
+); //Fin de app.get/categoria
 
 app.get(
   "/categoria/:id",
@@ -93,7 +138,7 @@ app.get(
      */
 
     try {
-      // verificar que la categoria existe y lanzar error si no
+      // verifica que la categoria existe y lanza error si no
 
       const query = "SELECT * FROM categorias WHERE categorias_id = ?";
       let respuesta = await qy(query, [req.params.id]);
@@ -101,24 +146,15 @@ app.get(
         throw new Error("No existe ese id de categoría");
       }
 
-      /*
-transforma
-categorias_id en id
-categorias_nombre en nombre
-*/
-      let respuesta2 = respuesta.map((item) => {
-        return { id: item.categorias_id, nombre: item.categorias_nombre };
-      });
+      res.send(adaptaNombresDeKeysAFormatoSalida(respuesta, categorias));
 
-      res.send(respuesta2);
-
-      //fin de try
+      //⇙ Fin de try
     } catch (e) {
       console.error(e.message);
       res.status(413).send({ Error: e.message });
-    } //fin de catch
+    } //Fin de catch
   } // fin de callback de app.get /categoria/:id
-); //fin de app.get /categoria/:id
+); //Fin de app.get /categoria/:id
 
 app.delete(
   "/categoria/:id",
@@ -130,14 +166,14 @@ app.delete(
    */
 
     try {
-      // chequeo si hay libros asociados
+      // Verifica si hay libros asociados
       let query = "SELECT * FROM libros WHERE libros_categoria_id = ?";
       let respuesta = await qy(query, [req.params.id]);
       if (respuesta.length > 0) {
         throw new Error("Esta categoria tiene libros asociados y no se puede borrar");
       }
 
-      // chequeo si existe la categoría
+      // Verifica si existe la categoría
       query = "SELECT * FROM categorias WHERE categorias_id = ?";
       respuesta = await qy(query, [req.params.id]);
 
@@ -145,17 +181,17 @@ app.delete(
         throw new Error("Esta categoria no existe");
       }
 
-      // si pasó chequeos de libros asociados y existencia de la categoria procede el borrado
+      // Si pasó chequeos de libros asociados y existencia de la categoría procede el borrado
 
       query = "DELETE FROM categorias WHERE categorias_id = ?";
       respuesta = await qy(query, [req.params.id]);
       res.status(200).send({ "Se borró correctamente": respuesta.affectedRows });
-      //fin de try
+      //⇙ Fin de try
     } catch (e) {
       console.error(e.message);
       res.status(413).send({ Error: e.message });
-    } //fin de catch
-  } //fin de callback de app.delete
+    } //Fin de catch
+  } //Fin de callback de app.delete
 ); // fin de app.delete
 
 /* No se debe implementar el put */
@@ -170,20 +206,20 @@ app.post("/persona", async (req, res) => {
    */
 
   /*
-json de prueba para copiar y pegar en postman
+JSON de prueba para copiar y pegar en postman
 
 {"nombre":"Gimena","apellido":"García","alias":"Gimenita","email":"gimena.garcia@gmail.com"}
 
 */
 
   try {
-    // verificar que no haya nulos
+    // Verifica que no haya nulos
 
     if (!req.body.nombre || !req.body.apellido || !req.body.email) {
       throw new Error("Faltan datos: nombre y/o apellido y/o email son nulos");
     }
 
-    //verificar que el email no se encuentre ya registrado
+    //Verifica que el email no se encuentre ya registrado
 
     let query = "SELECT * FROM prestatarios WHERE prestatarios_email = ?";
     let respuesta = await qy(query, [req.body.email.toUpperCase()]);
@@ -191,7 +227,7 @@ json de prueba para copiar y pegar en postman
       throw new Error("El email ya se encuentra registrado");
     }
 
-    // verificado que no haya nulos y el registro no exista previamente, procede su inserción
+    // Verificado que no haya nulos y el registro no exista previamente, procede su inserción
 
     query =
       "INSERT INTO prestatarios (prestatarios_nombre, prestatarios_apellido, prestatarios_email, prestatarios_alias) values ( ?, ?, ?, ?)";
@@ -202,37 +238,20 @@ json de prueba para copiar y pegar en postman
       req.body.alias.toUpperCase(),
     ]);
 
-    // hecha la inserción, recupero los datos con el id asignado
+    // Hecha la inserción, recupera los datos con el id asignado
 
     query = "SELECT * FROM prestatarios WHERE prestatarios_email = ?";
     respuesta = await qy(query, [req.body.email.toUpperCase()]);
-    /*
-    transforma
-    prestatarios_nombre en nombre
-    prestatarios_apellido en apellido
-    prestatarios_alias en alias
-    prestatarios_email en email
-    prestatarios_id en id
-*/
-    let respuesta2 = respuesta.map((item) => {
-      return {
-        id: item.prestatarios_id,
-        nombre: item.prestatarios_nombre,
-        apellido: item.prestatarios_apellido,
-        alias: item.prestatarios_alias,
-        email: item.prestatarios_email,
-      };
-    });
 
-    // envía la respuesta
+    // Envía la respuesta
 
-    res.send(respuesta2);
+    res.send(adaptaNombresDeKeysAFormatoSalida(respuesta, prestatarios));
 
-    //fin de try
+    //⇙ Fin de try
   } catch (e) {
     console.error(e.message);
     res.status(413).send({ Error: e.message });
-  } //fin de catch
+  } //Fin de catch
 });
 
 app.get("/persona", async (req, res) => {
@@ -243,36 +262,18 @@ app.get("/persona", async (req, res) => {
     let respuesta = await qy(query);
 
     if (respuesta.length != 0) {
-      /*
-transforma 
-prestatarios_nombre en nombre
-prestatarios_apellido en apellido
-prestatarios_alias en alias
-prestatarios_email en email
-prestatarios_id en id
-*/
-      let respuesta2 = respuesta.map((item) => {
-        return {
-          id: item.prestatarios_id,
-          nombre: item.prestatarios_nombre,
-          apellido: item.prestatarios_apellido,
-          alias: item.prestatarios_alias,
-          email: item.prestatarios_email,
-        };
-      });
-
-      res.send(respuesta2);
-    } //fin de if respuesta.length != 0
+      res.send(adaptaNombresDeKeysAFormatoSalida(respuesta, prestatarios));
+    } //Fin de if respuesta.length != 0
     else {
-      //si length de respuesta == 0 envío status 413 + array vacío (respuesta)
+      //Si length de respuesta == 0 envía status 413 + array vacío (respuesta)
       res.status(413).send(respuesta);
     }
 
-    //fin de try
+    //⇙ Fin de try
   } catch (e) {
     console.error(e.message);
     res.status(413).send({ Error: e.message });
-  } //fin de catch
+  } //Fin de catch
 });
 
 app.get("/persona/:id", async (req, res) => {
@@ -282,7 +283,7 @@ app.get("/persona/:id", async (req, res) => {
    */
 
   try {
-    //verificar que la persona existe
+    //Verifica que la persona existe
 
     let query = "SELECT * FROM prestatarios WHERE prestatarios_id = ?";
     let respuesta = await qy(query, [req.params.id]);
@@ -291,31 +292,13 @@ app.get("/persona/:id", async (req, res) => {
     }
 
     // Si la persona existe procede enviar los datos
-    /*
-transfoma
-prestatarios_apellido en apellido
-transforma prestatarios_nombre en nombre
-prestatarios_alias en alias
-prestatarios_email en email
-prestatarios_id en id
-*/
-    let respuesta2 = respuesta.map((item) => {
-      return {
-        id: item.prestatarios_id,
-        nombre: item.prestatarios_nombre,
-        apellido: item.prestatarios_apellido,
-        alias: item.prestatarios_alias,
-        email: item.prestatarios_email,
-      };
-    });
 
-    // Envía los datos
-    res.send(respuesta2);
-    //fin de try
+    res.send(adaptaNombresDeKeysAFormatoSalida(respuesta, prestatarios));
+    //⇙ Fin de try
   } catch (e) {
     console.error(e.message);
     res.status(413).send({ Error: e.message });
-  } //fin de catch
+  } //Fin de catch
 });
 
 app.put(
@@ -329,19 +312,19 @@ app.put(
 
     /*
    
-   json para probar desde postman
+   JSON para probar desde postman
 {"nombre":"Gimena2","apellido":"García2","alias":"gimenita2","email":"gimena.garcia@gmail.com"}
 
    */
 
     try {
-      //verifica que no haya datos nulos en los campos requeridos
+      //Verifica que no haya datos nulos en los campos requeridos
 
       if (!req.body.nombre || !req.body.apellido) {
         throw new Error("Datos nulos en campos requeridos nombre y/o apellido");
       }
 
-      //verifica que el id existe
+      //Verifica que el id existe
 
       let query = "SELECT * FROM prestatarios WHERE prestatarios_id = ?";
       let respuesta = await qy(query, [req.params.id]);
@@ -349,7 +332,7 @@ app.put(
         throw new Error("No se encuentra esa persona");
       }
 
-      // una vez verificado que no haya campos nulos y que el id existe procede actualizar
+      // Una vez verificado que no haya campos nulos y que el id existe procede actualizar
 
       query =
         "UPDATE prestatarios SET prestatarios_nombre = ?, prestatarios_apellido = ?, prestatarios_alias = ? WHERE prestatarios_id = ?";
@@ -359,37 +342,19 @@ app.put(
         req.body.alias.toUpperCase(),
         req.params.id,
       ]);
-      //console.log({ respuesta: respuesta.affectedRows });
 
       query = "SELECT * FROM prestatarios WHERE prestatarios_id = ?";
       respuesta = await qy(query, [req.params.id]);
 
-      /*
-transforma 
-prestatarios_nombre en nombre
-prestatarios_apellido en apellido
-prestatarios_alias en alias
-prestatarios_email en email
-prestatarios_id en id
-*/
-      let respuesta2 = respuesta.map((item) => {
-        return {
-          id: item.prestatarios_id,
-          nombre: item.prestatarios_nombre,
-          apellido: item.prestatarios_apellido,
-          alias: item.prestatarios_alias,
-          email: item.prestatarios_email,
-        };
-      });
-
-      res.send(respuesta2);
-      //fin de try
+      // Envía la respuesta
+      res.send(adaptaNombresDeKeysAFormatoSalida(respuesta, prestatarios));
+      //⇙ Fin de try
     } catch (e) {
       console.error(e.message);
       res.status(413).send({ Error: e.message });
-    } //fin de catch
-  } //fin de callback de app.put /persona
-); //fin de app.put /persona
+    } //Fin de catch
+  } //Fin de callback de app.put /persona
+); //Fin de app.put /persona
 
 app.delete(
   "/persona/:id",
@@ -399,13 +364,13 @@ app.delete(
   "esa persona tiene libros asociados, no se puede eliminar"
    */
     try {
-      // verifico si existe la persona
+      // Verifica si existe la persona
       let query = "SELECT * FROM prestatarios WHERE prestatarios_id = ?";
       let respuesta = await qy(query, [req.params.id]);
       if (respuesta.length == 0) {
         throw new Error("No existe esa persona");
       }
-      // verifico si tiene libros prestados
+      // Verifica si tiene libros prestados
       query = "SELECT * FROM libros WHERE libros_prestatario_id = ?";
       respuesta = await qy(query, [req.params.id]);
 
@@ -419,13 +384,13 @@ app.delete(
 
       res.send({ mensaje: "Se borró correctamente" });
 
-      //fin de try
+      //⇙ Fin de try
     } catch (e) {
       console.error(e.message);
       res.status(413).send({ Error: e.message });
-    } //fin de catch
-  } //fin de callback de app.delete /persona/:id
-); //fin de app.delete /persona/:id
+    } //Fin de catch
+  } //Fin de callback de app.delete /persona/:id
+); //Fin de app.delete /persona/:id
 
 /* LIBRO */
 
@@ -453,11 +418,11 @@ app.post(
   {"nombre":"libro10", "descripcion":"descripcion10", "categoria_id":1} 
   */
     try {
-      //verificar que no ingresen campos nulos (nombre y categoría)
+      //Verifica que no ingresen campos nulos (nombre y categoría)
       if (!req.body.nombre || !req.body.categoria_id) {
         throw new Error("Nombre y categoría son datos obligatorios");
       }
-      //verificar que no exista el libro previamente
+      //Verifica que no exista el libro previamente
 
       let query = "SELECT * FROM libros WHERE libros_nombre = ?";
       let respuesta = await qy(query, [req.body.nombre.toUpperCase()]);
@@ -465,7 +430,7 @@ app.post(
         throw new Error("Ese libro ya existe");
       }
 
-      //verificar que exista la categoría
+      //Verifica que exista la categoría
 
       query = "SELECT * FROM categorias WHERE categorias_id = ?";
       respuesta = await qy(query, [req.body.categoria_id]);
@@ -473,7 +438,7 @@ app.post(
         throw new Error("No existe la categoria indicada");
       }
 
-      // Si no hay campos nulos ni existe previamente y la categoría existe,
+      //Si no hay campos nulos ni existe previamente y la categoría existe,
       //procede insertar el registro
       query = "INSERT INTO libros (libros_nombre, libros_descripcion, libros_categoria_id) VALUES (?,?,?)";
       respuesta = await qy(query, [
@@ -484,37 +449,21 @@ app.post(
 
       let identificador = respuesta.insertId;
 
-      //prepara los datos que serán enviados como respuesta
+      //Prepara los datos que serán enviados como respuesta
 
       query = "SELECT * FROM libros WHERE libros_id = ?";
       respuesta = await qy(query, [identificador]);
-      /*
-transforma 
-libros_id en id
-libros_nombre en nombre
-libros_descripcion en descripcion
-libros_categoria_id en categoria_id
-libros_prestatario_id en persona_id
-*/
-      let respuesta2 = respuesta.map((item) => {
-        return {
-          id: item.libros_id,
-          nombre: item.libros_nombre,
-          descripcion: item.libros_descripcion,
-          categoria_id: item.libros_categoria_id,
-          persona_id: item.libros_prestatario_id,
-        };
-      });
 
-      res.send(respuesta2);
+      //Envía la respuesta
+      res.send(adaptaNombresDeKeysAFormatoSalida(respuesta, libros));
 
-      //fin de try
+      //⇙ Fin de try
     } catch (e) {
       console.error(e.message);
       res.status(413).send({ Error: e.message });
-    } //fin de catch
-  } //fin de callback de app.post /libro
-); //fin de app.post /libro
+    } //Fin de catch
+  } //Fin de callback de app.post /libro
+); //Fin de app.post /libro
 
 app.get(
   "/libro",
@@ -528,39 +477,21 @@ app.get(
       let respuesta = await qy(query);
 
       if (respuesta.length != 0) {
-        /*
-transforma 
-libros_id en id
-libros_nombre en nombre
-libros_descripcion en descripcion
-libros_categoria_id en categoria_id
-libros_prestatario_id en persona_id
-*/
-
-        let respuesta2 = respuesta.map((item) => {
-          return {
-            id: item.libros_id,
-            nombre: item.libros_nombre,
-            descripcion: item.libros_descripcion,
-            categoria_id: item.libros_categoria_id,
-            persona_id: item.libros_prestatario_id,
-          };
-        });
-
-        res.send(respuesta2);
-      } //fin de if respuesta.length != 0
+        // Envia la respuesta
+        res.send(adaptaNombresDeKeysAFormatoSalida(respuesta, libros));
+      } //Fin de if respuesta.length != 0
       else {
         //si length de respuesta == 0 envío status 413 + array vacío (respuesta)
         res.status(413).send(respuesta);
       }
 
-      //fin de try
+      //⇙ Fin de try
     } catch (e) {
       console.error(e.message);
       res.status(413).send({ Error: e.message });
-    } //fin de catch
-  } //fin de callback de app.get /libro
-); //fin de app.get /libro
+    } //Fin de catch
+  } //Fin de callback de app.get /libro
+); //Fin de app.get /libro
 
 app.get(
   "/libro/:id",
@@ -572,7 +503,7 @@ app.get(
 
  */
     try {
-      // verificar que el libro existe y lanzar error si no
+      // Verifica que el libro existe y lanzar error si no
 
       let query = "SELECT * FROM libros WHERE libros_id = ?";
       let respuesta = await qy(query, [req.params.id]);
@@ -581,34 +512,16 @@ app.get(
       }
 
       //Si el libro existe procede enviar la respuesta
-      /*
-transforma 
-libros_id en id
-libros_nombre en nombre
-libros_descripcion en descripcion
-libros_categoria_id en categoria_id
-libros_prestatario_id en persona_id
-*/
 
-      let respuesta2 = respuesta.map((item) => {
-        return {
-          id: item.libros_id,
-          nombre: item.libros_nombre,
-          descripcion: item.libros_descripcion,
-          categoria_id: item.libros_categoria_id,
-          persona_id: item.libros_prestatario_id,
-        };
-      });
+      res.send(adaptaNombresDeKeysAFormatoSalida(respuesta, libros));
 
-      res.send(respuesta2);
-
-      //fin de try
+      //⇙ Fin de try
     } catch (e) {
       console.error(e.message);
       res.status(413).send({ Error: e.message });
-    } //fin de catch
-  } //fin de callback de app.gett /libro/:id
-); //fin de app.gett /libro/:id
+    } //Fin de catch
+  } //Fin de callback de app.gett /libro/:id
+); //Fin de app.gett /libro/:id
 
 app.put(
   "/libro/:id",
@@ -625,59 +538,42 @@ app.put(
    
       */
     try {
-      //verificar que el libro existe
+      //Verifica que el libro existe
       let query = "SELECT * FROM libros WHERE libros_id = ?";
       let respuesta = await qy(query, [req.params.id]);
       if (respuesta.length == 0) {
         throw new Error("No se encuentra ese libro");
       }
 
-      //verificar que el nombre y categoria recibidos son nulos,
-      //ya que sólo se puede cambiar la descripcion
+      //Verifica que el nombre y categoría recibidos son nulos,
+      //ya que sólo se puede cambiar la descripción
 
       if (req.body.nombre || req.body.categoria || req.body.persona_id) {
         throw new Error(
-          "Sólo se puede modificar la descripción del libro, campos nombre, categoría_id y persona_id deben ser nulos"
+          "Sólo se puede modificar la descripción del libro, campos nombre, categoria_id y persona_id deben ser nulos"
         );
       }
 
-      //Si el libro existe y nombre/categoría son nulos, procede la modificación (de la descripción)
+      //Si el libro existe y nombre/categoría son nulos, procede la modificación
+      //(de la descripción)
 
       query = "UPDATE libros SET libros_descripcion = ? WHERE libros_id = ?";
       respuesta = await qy(query, [req.body.descripcion.toUpperCase(), req.params.id]);
 
-      //preparar la respuesta
+      //Prepara la respuesta
 
       query = "SELECT * FROM libros WHERE libros_id = ?";
       respuesta = await qy(query, [req.params.id]);
 
-      /*
-transforma 
-libros_id en id
-libros_nombre en nombre
-libros_descripcion en descripcion
-libros_categoria_id en categoria_id
-libros_prestatario_id en persona_id
-*/
-
-      let respuesta2 = respuesta.map((item) => {
-        return {
-          id: item.libros_id,
-          nombre: item.libros_nombre,
-          descripcion: item.libros_descripcion,
-          categoria_id: item.libros_categoria_id,
-          persona_id: item.libros_prestatario_id,
-        };
-      });
-
-      res.send(respuesta2);
-      //fin de try
+      //Envía la respuesta
+      res.send(adaptaNombresDeKeysAFormatoSalida(respuesta, libros));
+      //⇙ Fin de try
     } catch (e) {
       console.error(e.message);
       res.status(413).send({ Error: e.message });
-    } //fin de catch
-  } //fin de callback de app.put /libro/:id
-); //fin de app.put /libro/:id
+    } //Fin de catch
+  } //Fin de callback de app.put /libro/:id
+); //Fin de app.put /libro/:id
 
 app.put(
   "/libro/prestar/:id",
@@ -689,25 +585,25 @@ app.put(
    */
 
     try {
-      // verificar que no haya campos nulos
+      // Verifica que no haya campos nulos
 
       if (!req.params.id || !req.body.persona_id) {
         throw new Error("Alguno de los parámetros requeridos es nulo");
       }
 
-      //verificar que el libro existe
+      //Verifica que el libro existe
 
       let query = "SELECT * FROM libros WHERE libros_id = ?";
       let respuesta = await qy(query, [req.params.id]);
       if (respuesta.length == 0) {
         throw new Error("No se encontró el libro");
       }
-      // verificar que el libro no se encuentra prestado
+      // Verifica que el libro no se encuentra prestado
       if (respuesta[0].libros_prestatario_id != null) {
         throw new Error("El libro ya está prestado");
       }
 
-      //verificar que existe la persona a la que se le prestará
+      //Verifica que existe la persona a la que se le prestará
       query = "SELECT * FROM prestatarios WHERE prestatarios_id = ?";
 
       respuesta = await qy(query, [req.body.persona_id]);
@@ -723,13 +619,13 @@ app.put(
 
       res.send({ mensaje: "se prestó correctamente" });
 
-      //fin de try
+      //⇙ Fin de try
     } catch (e) {
       console.error(e.message);
       res.status(413).send({ Error: e.message });
-    } //fin de catch
-  } //fin de callback de app.put /libro/prestar/:id
-); //fin de app.put /libro/prestar/:id
+    } //Fin de catch
+  } //Fin de callback de app.put /libro/prestar/:id
+); //Fin de app.put /libro/prestar/:id
 
 app.put(
   "/libro/devolver/:id",
@@ -740,31 +636,31 @@ app.put(
    */
 
     try {
-      //verificar que existe
+      //Verifica que existe
       let query = "SELECT * FROM libros WHERE libros_id = ?";
       let respuesta = await qy(query, [req.params.id]);
       if (respuesta.length == 0) {
         throw new Error("Ese libro no existe");
       }
 
-      //verificar que esté prestado
+      //Verifica que esté prestado
 
       if (respuesta[0].libros_prestatario_id == null) {
         throw new Error("¡Ese libro no estaba prestado!");
       }
 
-      //si existe y está prestado procede la devolución
+      //Si existe y está prestado procede la devolución
 
       query = "UPDATE libros SET libros_prestatario_id = null WHERE libros_id = ?";
       respuesta = await qy(query, [req.params.id]);
       res.send({ mensaje: "Se realizó la devolución correctamente" });
-      //fin de try
+      //⇙ Fin de try
     } catch (e) {
       console.error(e.message);
       res.status(413).send({ Error: e.message });
-    } //fin de catch
-  } //fin de callback de app.put/libro/devolver/:id
-); //fin de app.put/libro/devolver/:id
+    } //Fin de catch
+  } //Fin de callback de app.put/libro/devolver/:id
+); //Fin de app.put/libro/devolver/:id
 
 app.delete(
   "/libro/:id",
@@ -774,7 +670,7 @@ app.delete(
   "ese libro esta prestado no se puede borrar"
    */
     try {
-      //verificar que el libro existe
+      //Verifica que el libro existe
 
       let query = "SELECT * FROM libros WHERE libros_id = ?";
       let respuesta = await qy(query, [req.params.id]);
@@ -782,13 +678,13 @@ app.delete(
         throw new Error("No se encuentra ese libro");
       }
 
-      //verificar que no esté prestado
+      //Verifica que no esté prestado
 
       if (respuesta[0].libros_prestatario_id != null) {
         throw new Error("Ese libro está prestado, no se puede borrar");
       }
 
-      //si existe y no está prestado procede la eliminación
+      //Si existe y no está prestado procede la eliminación
 
       query = "DELETE FROM libros WHERE libros_id = ?";
 
@@ -796,13 +692,13 @@ app.delete(
 
       res.send({ mensaje: "Se realizó la eliminación correctamente" });
 
-      //fin de try
+      //⇙ Fin de try
     } catch (e) {
       console.error(e.message);
       res.status(413).send({ Error: e.message });
-    } //fin de catch
-  } //fin de callback de app.delete /libro/:id
-); //fin de app.delete /libro/:id
+    } //Fin de catch
+  } //Fin de callback de app.delete /libro/:id
+); //Fin de app.delete /libro/:id
 
 app.listen(3000, () => {
   console.log("app escuchando puerto 3000");
