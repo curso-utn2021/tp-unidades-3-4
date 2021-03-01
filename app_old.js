@@ -9,7 +9,7 @@ const app = express();
 //Estas constantes se declaran para que en caso de un error de tipeo ocurra un error al compilar
 const libros = "LIBROS",
   categorias = "CATEGORIAS",
-  personas = "PERSONAS";
+  prestatarios = "PRESTATARIOS";
 
 var conexion = mysql.createConnection({
   host: "localhost",
@@ -37,7 +37,7 @@ function adaptaNombresDeKeysAFormatoSalida(datos, tipo) {
     case "CATEGORIAS":
       datosProvisorio = datos.map(
         (item) => {
-          return { id: item.id, nombre: item.nombre }; // Fin de la definición del elemento del array
+          return { id: item.categorias_id, nombre: item.categorias_nombre }; // Fin de la definición del elemento del array
         } //Fin de arrow function de datos.
       ); //Fin de datos.map
 
@@ -46,30 +46,30 @@ function adaptaNombresDeKeysAFormatoSalida(datos, tipo) {
       datosProvisorio = datos.map(
         (item) => {
           return {
-            id: item.id,
-            nombre: item.nombre,
-            descripcion: item.descripcion,
-            categoria_id: item.categoria_id,
-            persona_id: item.persona_id,
+            id: item.libros_id,
+            nombre: item.libros_nombre,
+            descripcion: item.libros_descripcion,
+            categoria_id: item.libros_categoria_id,
+            persona_id: item.libros_prestatario_id,
           }; // Fin de la definición del elemento del array
         } //Fin de arrow function de datos.
       ); //Fin de datos.map
 
       break; // Fin de case LIBROS
-    case "PERSONAS":
+    case "PRESTATARIOS":
       datosProvisorio = datos.map(
         (item) => {
           return {
-            id: item.id,
-            nombre: item.nombre,
-            apellido: item.apellido,
-            alias: item.alias,
-            email: item.email,
+            id: item.prestatarios_id,
+            nombre: item.prestatarios_nombre,
+            apellido: item.prestatarios_apellido,
+            alias: item.prestatarios_alias,
+            email: item.prestatarios_email,
           }; //Fin de la definición del elemento del array
         } //Fin de arrow function de datos.map
       ); // Fin de datos.map
 
-      break; //Fin de case PERSONAS
+      break; //Fin de case PRESTATARIOS
   } //Fin de switch
   return datosProvisorio;
 } //Fin de function adaptaNombresDeKeysAFormatoSalida
@@ -90,7 +90,7 @@ app.post(
 
       // verifica que la categoría no existe
 
-      let query = "SELECT * FROM categorias WHERE nombre = ?";
+      let query = "SELECT * FROM categorias WHERE categorias_nombre = ?";
       let respuesta = await qy(query, [req.body.nombre.toUpperCase()]);
       if (respuesta.length > 0) {
         throw new Error("Esta categoria ya existe");
@@ -99,7 +99,7 @@ app.post(
       // Si pasó chequeos de que no falten datos y que la categoría no exista previamente
       //procede la creación de la categoría
 
-      query = "INSERT INTO categorias (nombre) VALUES (?)";
+      query = "INSERT INTO categorias (categorias_nombre) VALUES (?)";
       respuesta = await qy(query, [req.body.nombre.toUpperCase()]);
       res.send({ id: respuesta.insertId, nombre: req.body.nombre.toUpperCase() });
       //⇙ Fin de try
@@ -139,7 +139,7 @@ app.get(
     try {
       // verifica que la categoria existe y lanza error si no
 
-      const query = "SELECT * FROM categorias WHERE id = ?";
+      const query = "SELECT * FROM categorias WHERE categorias_id = ?";
       let respuesta = await qy(query, [req.params.id]);
       if (respuesta.length == 0) {
         throw new Error("No existe ese id de categoría");
@@ -166,14 +166,14 @@ app.delete(
 
     try {
       // Verifica si hay libros asociados
-      let query = "SELECT * FROM libros WHERE categoria_id = ?";
+      let query = "SELECT * FROM libros WHERE libros_categoria_id = ?";
       let respuesta = await qy(query, [req.params.id]);
       if (respuesta.length > 0) {
         throw new Error("Esta categoria tiene libros asociados y no se puede borrar");
       }
 
       // Verifica si existe la categoría
-      query = "SELECT * FROM categorias WHERE id = ?";
+      query = "SELECT * FROM categorias WHERE categorias_id = ?";
       respuesta = await qy(query, [req.params.id]);
 
       if (respuesta.length == 0) {
@@ -182,7 +182,7 @@ app.delete(
 
       // Si pasó chequeos de libros asociados y existencia de la categoría procede el borrado
 
-      query = "DELETE FROM categorias WHERE id = ?";
+      query = "DELETE FROM categorias WHERE categorias_id = ?";
       respuesta = await qy(query, [req.params.id]);
       res.status(200).send({ "Se borró correctamente": respuesta.affectedRows });
       //⇙ Fin de try
@@ -214,13 +214,13 @@ JSON de prueba para copiar y pegar en postman
   try {
     // Verifica que no haya nulos
 
-    if (!req.body.nombre || !req.body.apellido || !req.body.email || !req.body.alias) {
-      throw new Error("Faltan datos: nombre y/o apellido y/o email y/o alias son nulos");
+    if (!req.body.nombre || !req.body.apellido || !req.body.email) {
+      throw new Error("Faltan datos: nombre y/o apellido y/o email son nulos");
     }
 
     //Verifica que el email no se encuentre ya registrado
 
-    let query = "SELECT * FROM personas WHERE email = ?";
+    let query = "SELECT * FROM prestatarios WHERE prestatarios_email = ?";
     let respuesta = await qy(query, [req.body.email.toUpperCase()]);
     if (respuesta.length > 0) {
       throw new Error("El email ya se encuentra registrado");
@@ -229,7 +229,7 @@ JSON de prueba para copiar y pegar en postman
     // Verificado que no haya nulos y el registro no exista previamente, procede su inserción
 
     query =
-      "INSERT INTO personas (nombre, apellido, email, alias) values ( ?, ?, ?, ?)";
+      "INSERT INTO prestatarios (prestatarios_nombre, prestatarios_apellido, prestatarios_email, prestatarios_alias) values ( ?, ?, ?, ?)";
     respuesta = await qy(query, [
       req.body.nombre.toUpperCase(),
       req.body.apellido.toUpperCase(),
@@ -239,12 +239,12 @@ JSON de prueba para copiar y pegar en postman
 
     // Hecha la inserción, recupera los datos con el id asignado
 
-    query = "SELECT * FROM personas WHERE email = ?";
+    query = "SELECT * FROM prestatarios WHERE prestatarios_email = ?";
     respuesta = await qy(query, [req.body.email.toUpperCase()]);
 
     // Envía la respuesta
 
-    res.send(adaptaNombresDeKeysAFormatoSalida(respuesta, personas));
+    res.send(adaptaNombresDeKeysAFormatoSalida(respuesta, prestatarios));
 
     //⇙ Fin de try
   } catch (e) {
@@ -257,11 +257,11 @@ app.get("/persona", async (req, res) => {
   /*  retorna status 200 y [{id: numerico, nombre: string, apellido: string, alias: string, 
     email; string}] o bien status 413 y [] */
   try {
-    let query = "SELECT * FROM personas";
+    let query = "SELECT * FROM prestatarios";
     let respuesta = await qy(query);
 
     if (respuesta.length != 0) {
-      res.send(adaptaNombresDeKeysAFormatoSalida(respuesta, personas));
+      res.send(adaptaNombresDeKeysAFormatoSalida(respuesta, prestatarios));
     } //Fin de if respuesta.length != 0
     else {
       //Si length de respuesta == 0 envía status 413 + array vacío (respuesta)
@@ -284,7 +284,7 @@ app.get("/persona/:id", async (req, res) => {
   try {
     //Verifica que la persona existe
 
-    let query = "SELECT * FROM personas WHERE id = ?";
+    let query = "SELECT * FROM prestatarios WHERE prestatarios_id = ?";
     let respuesta = await qy(query, [req.params.id]);
     if (respuesta.length == 0) {
       throw new Error("No se encuentra esa persona");
@@ -292,7 +292,7 @@ app.get("/persona/:id", async (req, res) => {
 
     // Si la persona existe procede enviar los datos
 
-    res.send(adaptaNombresDeKeysAFormatoSalida(respuesta, personas));
+    res.send(adaptaNombresDeKeysAFormatoSalida(respuesta, prestatarios));
     //⇙ Fin de try
   } catch (e) {
     console.error(e.message);
@@ -319,13 +319,13 @@ app.put(
     try {
       //Verifica que no haya datos nulos en los campos requeridos
 
-      if (!req.body.nombre || !req.body.apellido || !req.body.alias) {
-        throw new Error("Datos nulos en campos requeridos nombre y/o apellido y/o alias");
+      if (!req.body.nombre || !req.body.apellido) {
+        throw new Error("Datos nulos en campos requeridos nombre y/o apellido");
       }
 
       //Verifica que el id existe
 
-      let query = "SELECT * FROM personas WHERE id = ?";
+      let query = "SELECT * FROM prestatarios WHERE prestatarios_id = ?";
       let respuesta = await qy(query, [req.params.id]);
       if (respuesta.length == 0) {
         throw new Error("No se encuentra esa persona");
@@ -334,7 +334,7 @@ app.put(
       // Una vez verificado que no haya campos nulos y que el id existe procede actualizar
 
       query =
-        "UPDATE personas SET nombre = ?, apellido = ?, alias = ? WHERE id = ?";
+        "UPDATE prestatarios SET prestatarios_nombre = ?, prestatarios_apellido = ?, prestatarios_alias = ? WHERE prestatarios_id = ?";
       respuesta = await qy(query, [
         req.body.nombre.toUpperCase(),
         req.body.apellido.toUpperCase(),
@@ -342,11 +342,11 @@ app.put(
         req.params.id,
       ]);
 
-      query = "SELECT * FROM personas WHERE id = ?";
+      query = "SELECT * FROM prestatarios WHERE prestatarios_id = ?";
       respuesta = await qy(query, [req.params.id]);
 
       // Envía la respuesta
-      res.send(adaptaNombresDeKeysAFormatoSalida(respuesta, personas));
+      res.send(adaptaNombresDeKeysAFormatoSalida(respuesta, prestatarios));
       //⇙ Fin de try
     } catch (e) {
       console.error(e.message);
@@ -364,13 +364,13 @@ app.delete(
    */
     try {
       // Verifica si existe la persona
-      let query = "SELECT * FROM personas WHERE id = ?";
+      let query = "SELECT * FROM prestatarios WHERE prestatarios_id = ?";
       let respuesta = await qy(query, [req.params.id]);
       if (respuesta.length == 0) {
         throw new Error("No existe esa persona");
       }
       // Verifica si tiene libros prestados
-      query = "SELECT * FROM libros WHERE persona_id = ?";
+      query = "SELECT * FROM libros WHERE libros_prestatario_id = ?";
       respuesta = await qy(query, [req.params.id]);
 
       if (respuesta.length > 0) {
@@ -378,7 +378,7 @@ app.delete(
       }
 
       // Si la persona existe y no tiene libros prestados, procede la eliminación
-      query = "DELETE FROM personas WHERE id = ?";
+      query = "DELETE FROM prestatarios WHERE prestatarios_id = ?";
       respuesta = await qy(query, [req.params.id]);
 
       res.send({ mensaje: "Se borró correctamente" });
@@ -423,7 +423,7 @@ app.post(
       }
       //Verifica que no exista el libro previamente
 
-      let query = "SELECT * FROM libros WHERE nombre = ?";
+      let query = "SELECT * FROM libros WHERE libros_nombre = ?";
       let respuesta = await qy(query, [req.body.nombre.toUpperCase()]);
       if (respuesta.length > 0) {
         throw new Error("Ese libro ya existe");
@@ -431,38 +431,26 @@ app.post(
 
       //Verifica que exista la categoría
 
-      query = "SELECT * FROM categorias WHERE id = ?";
+      query = "SELECT * FROM categorias WHERE categorias_id = ?";
       respuesta = await qy(query, [req.body.categoria_id]);
       if (respuesta.length == 0) {
         throw new Error("No existe la categoria indicada");
       }
 
-
-      //Verifica si el id de persona es null o corresponde a una persona existente
-      if(req.body.persona_id){
-        query = "SELECT * FROM personas WHERE id = ?";
-        respuesta = await qy(query, [req.body.persona_id]);
-        if (respuesta.length == 0) {
-          throw new Error("No existe la persona indicada");
-        }
-      }
-
-
       //Si no hay campos nulos ni existe previamente y la categoría existe,
       //procede insertar el registro
-      query = "INSERT INTO libros (nombre, descripcion, categoria_id, persona_id) VALUES (?,?,?,?)";
+      query = "INSERT INTO libros (libros_nombre, libros_descripcion, libros_categoria_id) VALUES (?,?,?)";
       respuesta = await qy(query, [
         req.body.nombre.toUpperCase(),
         req.body.descripcion.toUpperCase(),
         req.body.categoria_id,
-        req.body.persona_id
       ]);
 
       let identificador = respuesta.insertId;
 
       //Prepara los datos que serán enviados como respuesta
 
-      query = "SELECT * FROM libros WHERE id = ?";
+      query = "SELECT * FROM libros WHERE libros_id = ?";
       respuesta = await qy(query, [identificador]);
 
       //Envía la respuesta
@@ -516,7 +504,7 @@ app.get(
     try {
       // Verifica que el libro existe y lanzar error si no
 
-      let query = "SELECT * FROM libros WHERE id = ?";
+      let query = "SELECT * FROM libros WHERE libros_id = ?";
       let respuesta = await qy(query, [req.params.id]);
       if (respuesta.length == 0) {
         throw new Error("No se encuentra ese libro");
@@ -550,7 +538,7 @@ app.put(
       */
     try {
       //Verifica que el libro existe
-      let query = "SELECT * FROM libros WHERE id = ?";
+      let query = "SELECT * FROM libros WHERE libros_id = ?";
       let respuesta = await qy(query, [req.params.id]);
       if (respuesta.length == 0) {
         throw new Error("No se encuentra ese libro");
@@ -568,12 +556,12 @@ app.put(
       //Si el libro existe y nombre/categoría son nulos, procede la modificación
       //(de la descripción)
 
-      query = "UPDATE libros SET descripcion = ? WHERE id = ?";
+      query = "UPDATE libros SET libros_descripcion = ? WHERE libros_id = ?";
       respuesta = await qy(query, [req.body.descripcion.toUpperCase(), req.params.id]);
 
       //Prepara la respuesta
 
-      query = "SELECT * FROM libros WHERE id = ?";
+      query = "SELECT * FROM libros WHERE libros_id = ?";
       respuesta = await qy(query, [req.params.id]);
 
       //Envía la respuesta
@@ -604,18 +592,18 @@ app.put(
 
       //Verifica que el libro existe
 
-      let query = "SELECT * FROM libros WHERE id = ?";
+      let query = "SELECT * FROM libros WHERE libros_id = ?";
       let respuesta = await qy(query, [req.params.id]);
       if (respuesta.length == 0) {
         throw new Error("No se encontró el libro");
       }
       // Verifica que el libro no se encuentra prestado
-      if (respuesta[0].persona_id != null) {
+      if (respuesta[0].libros_prestatario_id != null) {
         throw new Error("El libro ya está prestado");
       }
 
       //Verifica que existe la persona a la que se le prestará
-      query = "SELECT * FROM personas WHERE id = ?";
+      query = "SELECT * FROM prestatarios WHERE prestatarios_id = ?";
 
       respuesta = await qy(query, [req.body.persona_id]);
       if (respuesta.length == 0) {
@@ -624,7 +612,7 @@ app.put(
 
       // Si no se detectaron errores, procede el préstamo
 
-      query = "UPDATE libros SET persona_id = ? WHERE id = ?";
+      query = "UPDATE libros SET libros_prestatario_id = ? WHERE libros_id = ?";
 
       respuesta = await qy(query, [req.body.persona_id, req.params.id]);
 
@@ -648,7 +636,7 @@ app.put(
 
     try {
       //Verifica que existe
-      let query = "SELECT * FROM libros WHERE id = ?";
+      let query = "SELECT * FROM libros WHERE libros_id = ?";
       let respuesta = await qy(query, [req.params.id]);
       if (respuesta.length == 0) {
         throw new Error("Ese libro no existe");
@@ -656,13 +644,13 @@ app.put(
 
       //Verifica que esté prestado
 
-      if (respuesta[0].persona_id == null) {
+      if (respuesta[0].libros_prestatario_id == null) {
         throw new Error("¡Ese libro no estaba prestado!");
       }
 
       //Si existe y está prestado procede la devolución
 
-      query = "UPDATE libros SET persona_id = null WHERE id = ?";
+      query = "UPDATE libros SET libros_prestatario_id = null WHERE libros_id = ?";
       respuesta = await qy(query, [req.params.id]);
       res.send({ mensaje: "Se realizó la devolución correctamente" });
       //⇙ Fin de try
@@ -683,7 +671,7 @@ app.delete(
     try {
       //Verifica que el libro existe
 
-      let query = "SELECT * FROM libros WHERE id = ?";
+      let query = "SELECT * FROM libros WHERE libros_id = ?";
       let respuesta = await qy(query, [req.params.id]);
       if (respuesta.length == 0) {
         throw new Error("No se encuentra ese libro");
@@ -691,13 +679,13 @@ app.delete(
 
       //Verifica que no esté prestado
 
-      if (respuesta[0].persona_id != null) {
+      if (respuesta[0].libros_prestatario_id != null) {
         throw new Error("Ese libro está prestado, no se puede borrar");
       }
 
       //Si existe y no está prestado procede la eliminación
 
-      query = "DELETE FROM libros WHERE id = ?";
+      query = "DELETE FROM libros WHERE libros_id = ?";
 
       respuesta = await qy(query, [req.params.id]);
 
