@@ -6,11 +6,6 @@ const util = require("util");
 
 const app = express();
 
-//Estas constantes se declaran para que en caso de un error de tipeo ocurra un error al compilar
-const libros = "LIBROS",
-  categorias = "CATEGORIAS",
-  personas = "PERSONAS";
-
 var conexion = mysql.createConnection({
   host: "localhost",
   user: "root",
@@ -27,52 +22,6 @@ conexion.connect((error) => {
   }
   console.log("Conexión con la base de datos establecida");
 });
-
-/*Esta función transforma los nombres internos de los campos de la base de datos
-en los nombres requeridos en la consigna */
-
-function adaptaNombresDeKeysAFormatoSalida(datos, tipo) {
-  let datosProvisorio = [];
-  switch (tipo) {
-    case "CATEGORIAS":
-      datosProvisorio = datos.map(
-        (item) => {
-          return { id: item.id, nombre: item.nombre }; // Fin de la definición del elemento del array
-        } //Fin de arrow function de datos.
-      ); //Fin de datos.map
-
-      break; // Fin de case CATEGORIAS
-    case "LIBROS":
-      datosProvisorio = datos.map(
-        (item) => {
-          return {
-            id: item.id,
-            nombre: item.nombre,
-            descripcion: item.descripcion,
-            categoria_id: item.categoria_id,
-            persona_id: item.persona_id,
-          }; // Fin de la definición del elemento del array
-        } //Fin de arrow function de datos.
-      ); //Fin de datos.map
-
-      break; // Fin de case LIBROS
-    case "PERSONAS":
-      datosProvisorio = datos.map(
-        (item) => {
-          return {
-            id: item.id,
-            nombre: item.nombre,
-            apellido: item.apellido,
-            alias: item.alias,
-            email: item.email,
-          }; //Fin de la definición del elemento del array
-        } //Fin de arrow function de datos.map
-      ); // Fin de datos.map
-
-      break; //Fin de case PERSONAS
-  } //Fin de switch
-  return datosProvisorio;
-} //Fin de function adaptaNombresDeKeysAFormatoSalida
 
 app.use(express.json());
 
@@ -119,8 +68,8 @@ app.get(
       const respuesta = await qy(query);
 
       //Envía la respuesta
-      console.log(adaptaNombresDeKeysAFormatoSalida(respuesta, categorias));
-      res.send(adaptaNombresDeKeysAFormatoSalida(respuesta, categorias));
+      console.log(respuesta);
+      res.send(respuesta);
 
       //⇙ Fin de try
     } catch (e) {
@@ -145,7 +94,7 @@ app.get(
         throw new Error("No existe ese id de categoría");
       }
 
-      res.send(adaptaNombresDeKeysAFormatoSalida(respuesta, categorias));
+      res.send(respuesta);
 
       //⇙ Fin de try
     } catch (e) {
@@ -228,8 +177,7 @@ JSON de prueba para copiar y pegar en postman
 
     // Verificado que no haya nulos y el registro no exista previamente, procede su inserción
 
-    query =
-      "INSERT INTO personas (nombre, apellido, email, alias) values ( ?, ?, ?, ?)";
+    query = "INSERT INTO personas (nombre, apellido, email, alias) values ( ?, ?, ?, ?)";
     respuesta = await qy(query, [
       req.body.nombre.toUpperCase(),
       req.body.apellido.toUpperCase(),
@@ -244,7 +192,7 @@ JSON de prueba para copiar y pegar en postman
 
     // Envía la respuesta
 
-    res.send(adaptaNombresDeKeysAFormatoSalida(respuesta, personas));
+    res.send(respuesta);
 
     //⇙ Fin de try
   } catch (e) {
@@ -261,7 +209,7 @@ app.get("/persona", async (req, res) => {
     let respuesta = await qy(query);
 
     if (respuesta.length != 0) {
-      res.send(adaptaNombresDeKeysAFormatoSalida(respuesta, personas));
+      res.send(respuesta);
     } //Fin de if respuesta.length != 0
     else {
       //Si length de respuesta == 0 envía status 413 + array vacío (respuesta)
@@ -292,7 +240,7 @@ app.get("/persona/:id", async (req, res) => {
 
     // Si la persona existe procede enviar los datos
 
-    res.send(adaptaNombresDeKeysAFormatoSalida(respuesta, personas));
+    res.send(respuesta);
     //⇙ Fin de try
   } catch (e) {
     console.error(e.message);
@@ -333,8 +281,7 @@ app.put(
 
       // Una vez verificado que no haya campos nulos y que el id existe procede actualizar
 
-      query =
-        "UPDATE personas SET nombre = ?, apellido = ?, alias = ? WHERE id = ?";
+      query = "UPDATE personas SET nombre = ?, apellido = ?, alias = ? WHERE id = ?";
       respuesta = await qy(query, [
         req.body.nombre.toUpperCase(),
         req.body.apellido.toUpperCase(),
@@ -346,7 +293,7 @@ app.put(
       respuesta = await qy(query, [req.params.id]);
 
       // Envía la respuesta
-      res.send(adaptaNombresDeKeysAFormatoSalida(respuesta, personas));
+      res.send(respuesta);
       //⇙ Fin de try
     } catch (e) {
       console.error(e.message);
@@ -437,16 +384,14 @@ app.post(
         throw new Error("No existe la categoria indicada");
       }
 
-
       //Verifica si el id de persona es null o corresponde a una persona existente
-      if(req.body.persona_id){
+      if (req.body.persona_id) {
         query = "SELECT * FROM personas WHERE id = ?";
         respuesta = await qy(query, [req.body.persona_id]);
         if (respuesta.length == 0) {
           throw new Error("No existe la persona indicada");
         }
       }
-
 
       //Si no hay campos nulos ni existe previamente y la categoría existe,
       //procede insertar el registro
@@ -455,7 +400,7 @@ app.post(
         req.body.nombre.toUpperCase(),
         req.body.descripcion.toUpperCase(),
         req.body.categoria_id,
-        req.body.persona_id
+        req.body.persona_id,
       ]);
 
       let identificador = respuesta.insertId;
@@ -466,7 +411,7 @@ app.post(
       respuesta = await qy(query, [identificador]);
 
       //Envía la respuesta
-      res.send(adaptaNombresDeKeysAFormatoSalida(respuesta, libros));
+      res.send(respuesta);
 
       //⇙ Fin de try
     } catch (e) {
@@ -489,7 +434,7 @@ app.get(
 
       if (respuesta.length != 0) {
         // Envia la respuesta
-        res.send(adaptaNombresDeKeysAFormatoSalida(respuesta, libros));
+        res.send(respuesta);
       } //Fin de if respuesta.length != 0
       else {
         //si length de respuesta == 0 envío status 413 + array vacío (respuesta)
@@ -524,7 +469,7 @@ app.get(
 
       //Si el libro existe procede enviar la respuesta
 
-      res.send(adaptaNombresDeKeysAFormatoSalida(respuesta, libros));
+      res.send(respuesta);
 
       //⇙ Fin de try
     } catch (e) {
@@ -577,7 +522,7 @@ app.put(
       respuesta = await qy(query, [req.params.id]);
 
       //Envía la respuesta
-      res.send(adaptaNombresDeKeysAFormatoSalida(respuesta, libros));
+      res.send(respuesta);
       //⇙ Fin de try
     } catch (e) {
       console.error(e.message);
