@@ -34,7 +34,7 @@ app.post(
     try {
       // verifica que no falten datos
       if (!req.body.nombre) {
-        throw new Error("No se definió el nombre");
+        throw new Error("Faltan datos: no se definió el nombre");
       }
 
       // verifica que la categoría no existe
@@ -51,8 +51,7 @@ app.post(
       query = "INSERT INTO categorias (nombre) VALUES (?)";
       respuesta = await qy(query, [req.body.nombre.toUpperCase()]);
       res.send({ id: respuesta.insertId, nombre: req.body.nombre.toUpperCase() });
-      //⇙ Fin de try
-    } catch (e) {
+    } /*Fin de try*/ /* Fin de try*/ catch (e) {
       console.error(e.message);
       res.status(413).send({ Error: e.message });
     } //Fin de catch
@@ -70,9 +69,7 @@ app.get(
       //Envía la respuesta
       console.log(respuesta);
       res.send(respuesta);
-
-      //⇙ Fin de try
-    } catch (e) {
+    } /* Fin de try*/ catch (e) {
       console.error(e.message);
       res.status(413).send({ Error: e.message });
     } //Fin de catch
@@ -86,6 +83,11 @@ app.get(
      */
 
     try {
+      //Verifica que se haya enviado parámetro id
+      if (!req.params.id) {
+        throw new Error("Faltan datos");
+      }
+
       // verifica que la categoria existe y lanza error si no
 
       const query = "SELECT * FROM categorias WHERE id = ?";
@@ -95,9 +97,7 @@ app.get(
       }
 
       res.send(respuesta);
-
-      //⇙ Fin de try
-    } catch (e) {
+    } /* Fin de try*/ catch (e) {
       console.error(e.message);
       res.status(413).send({ Error: e.message });
     } //Fin de catch
@@ -114,11 +114,15 @@ app.delete(
    */
 
     try {
+      if (!req.params.id) {
+        throw new Error("Faltan datos, no se envió id");
+      }
+
       // Verifica si hay libros asociados
       let query = "SELECT * FROM libros WHERE categoria_id = ?";
       let respuesta = await qy(query, [req.params.id]);
       if (respuesta.length > 0) {
-        throw new Error("Esta categoria tiene libros asociados y no se puede borrar");
+        throw new Error("Categoría con libros asociados, no se puede eliminar");
       }
 
       // Verifica si existe la categoría
@@ -126,7 +130,7 @@ app.delete(
       respuesta = await qy(query, [req.params.id]);
 
       if (respuesta.length == 0) {
-        throw new Error("Esta categoria no existe");
+        throw new Error("No existe la categoría indicada");
       }
 
       // Si pasó chequeos de libros asociados y existencia de la categoría procede el borrado
@@ -134,10 +138,9 @@ app.delete(
       query = "DELETE FROM categorias WHERE id = ?";
       respuesta = await qy(query, [req.params.id]);
       res.status(200).send({ "Se borró correctamente": respuesta.affectedRows });
-      //⇙ Fin de try
-    } catch (e) {
+    } /* Fin de try*/ catch (e) {
       console.error(e.message);
-      res.status(413).send({ Error: e.message });
+      res.status(413).send({ mensaje: e.message });
     } //Fin de catch
   } //Fin de callback de app.delete
 ); // fin de app.delete
@@ -193,11 +196,9 @@ JSON de prueba para copiar y pegar en postman
     // Envía la respuesta
 
     res.send(respuesta);
-
-    //⇙ Fin de try
-  } catch (e) {
-    console.error(e.message);
-    res.status(413).send({ Error: e.message });
+  } /*Fin de try*/ /* Fin de try*/ catch (error) {
+    console.error(error.message);
+    res.status(413).send({ Error: error.message });
   } //Fin de catch
 });
 
@@ -215,11 +216,9 @@ app.get("/persona", async (req, res) => {
       //Si length de respuesta == 0 envía status 413 + array vacío (respuesta)
       res.status(413).send(respuesta);
     }
-
-    //⇙ Fin de try
-  } catch (e) {
+  } /* Fin de try*/ catch (error) {
     console.error(e.message);
-    res.status(413).send({ Error: e.message });
+    res.status(413).send({ Error: error.message });
   } //Fin de catch
 });
 
@@ -230,6 +229,11 @@ app.get("/persona/:id", async (req, res) => {
    */
 
   try {
+    //Verifica que el id fue enviado
+    if (!req.params.id) {
+      throw new Error("Faltan datos: no se envió id");
+    }
+
     //Verifica que la persona existe
 
     let query = "SELECT * FROM personas WHERE id = ?";
@@ -241,10 +245,9 @@ app.get("/persona/:id", async (req, res) => {
     // Si la persona existe procede enviar los datos
 
     res.send(respuesta);
-    //⇙ Fin de try
-  } catch (e) {
-    console.error(e.message);
-    res.status(413).send({ Error: e.message });
+  } /* Fin de try*/ catch (error) {
+    console.error(error.message);
+    res.status(413).send({ Error: error.message });
   } //Fin de catch
 });
 
@@ -280,6 +283,7 @@ app.put(
       }
 
       // Una vez verificado que no haya campos nulos y que el id existe procede actualizar
+      // todos los campos excepto email que no se puede cambiar
 
       query = "UPDATE personas SET nombre = ?, apellido = ?, alias = ? WHERE id = ?";
       respuesta = await qy(query, [
@@ -294,10 +298,9 @@ app.put(
 
       // Envía la respuesta
       res.send(respuesta);
-      //⇙ Fin de try
-    } catch (e) {
-      console.error(e.message);
-      res.status(413).send({ Error: e.message });
+    } /* Fin de try*/ catch (error) {
+      console.error(error.message);
+      res.status(413).send({ Error: error.message });
     } //Fin de catch
   } //Fin de callback de app.put /persona
 ); //Fin de app.put /persona
@@ -310,6 +313,12 @@ app.delete(
   "esa persona tiene libros asociados, no se puede eliminar"
    */
     try {
+      //Verifica que el id haya sido enviado
+
+      if (!req.params.id) {
+        throw new Error("Faltan datos: id no enviado");
+      }
+
       // Verifica si existe la persona
       let query = "SELECT * FROM personas WHERE id = ?";
       let respuesta = await qy(query, [req.params.id]);
@@ -329,11 +338,9 @@ app.delete(
       respuesta = await qy(query, [req.params.id]);
 
       res.send({ mensaje: "Se borró correctamente" });
-
-      //⇙ Fin de try
-    } catch (e) {
-      console.error(e.message);
-      res.status(413).send({ Error: e.message });
+    } /* Fin de try*/ catch (error) {
+      console.error(error.message);
+      res.status(413).send({ Error: error.message });
     } //Fin de catch
   } //Fin de callback de app.delete /persona/:id
 ); //Fin de app.delete /persona/:id
@@ -393,7 +400,9 @@ app.post(
         }
       }
 
-      //Si no hay campos nulos ni existe previamente y la categoría existe,
+      //Si no hay campos nulos, ni el libro existe previamente y la categoría existe
+      // y persona_id es nulo (el libro no «nace» ya prestado) o
+      // si nace ya prestado el id del prestatario corresponde a una persona existente
       //procede insertar el registro
       query = "INSERT INTO libros (nombre, descripcion, categoria_id, persona_id) VALUES (?,?,?,?)";
       respuesta = await qy(query, [
@@ -412,11 +421,9 @@ app.post(
 
       //Envía la respuesta
       res.send(respuesta);
-
-      //⇙ Fin de try
-    } catch (e) {
-      console.error(e.message);
-      res.status(413).send({ Error: e.message });
+    } /* Fin de try*/ catch (error) {
+      console.error(error.message);
+      res.status(413).send({ Error: error.message });
     } //Fin de catch
   } //Fin de callback de app.post /libro
 ); //Fin de app.post /libro
@@ -440,11 +447,9 @@ app.get(
         //si length de respuesta == 0 envío status 413 + array vacío (respuesta)
         res.status(413).send(respuesta);
       }
-
-      //⇙ Fin de try
-    } catch (e) {
-      console.error(e.message);
-      res.status(413).send({ Error: e.message });
+    } /* Fin de try*/ catch (error) {
+      console.error(error.message);
+      res.status(413).send({ Error: error.message });
     } //Fin de catch
   } //Fin de callback de app.get /libro
 ); //Fin de app.get /libro
@@ -459,6 +464,12 @@ app.get(
 
  */
     try {
+      //Verifica que id no viene nulo
+
+      if (!req.params.id) {
+        throw new Error("Faltan datos: id no puede ser null");
+      }
+
       // Verifica que el libro existe y lanzar error si no
 
       let query = "SELECT * FROM libros WHERE id = ?";
@@ -470,11 +481,9 @@ app.get(
       //Si el libro existe procede enviar la respuesta
 
       res.send(respuesta);
-
-      //⇙ Fin de try
-    } catch (e) {
-      console.error(e.message);
-      res.status(413).send({ Error: e.message });
+    } /* Fin de try*/ catch (error) {
+      console.error(error.message);
+      res.status(413).send({ Error: error.message });
     } //Fin de catch
   } //Fin de callback de app.gett /libro/:id
 ); //Fin de app.gett /libro/:id
@@ -494,6 +503,11 @@ app.put(
    
       */
     try {
+      //Verifica que id no viene null
+      if (!req.params.id) {
+        throw new Error("Faltan datos: id no puede ser null");
+      }
+
       //Verifica que el libro existe
       let query = "SELECT * FROM libros WHERE id = ?";
       let respuesta = await qy(query, [req.params.id]);
@@ -523,10 +537,9 @@ app.put(
 
       //Envía la respuesta
       res.send(respuesta);
-      //⇙ Fin de try
-    } catch (e) {
-      console.error(e.message);
-      res.status(413).send({ Error: e.message });
+    } /* Fin de try*/ catch (error) {
+      console.error(error.message);
+      res.status(413).send({ Error: error.message });
     } //Fin de catch
   } //Fin de callback de app.put /libro/:id
 ); //Fin de app.put /libro/:id
@@ -544,7 +557,7 @@ app.put(
       // Verifica que no haya campos nulos
 
       if (!req.params.id || !req.body.persona_id) {
-        throw new Error("Alguno de los parámetros requeridos es nulo");
+        throw new Error("Faltan datos: alguno de los parámetros requeridos es nulo");
       }
 
       //Verifica que el libro existe
@@ -574,11 +587,9 @@ app.put(
       respuesta = await qy(query, [req.body.persona_id, req.params.id]);
 
       res.send({ mensaje: "se prestó correctamente" });
-
-      //⇙ Fin de try
-    } catch (e) {
-      console.error(e.message);
-      res.status(413).send({ Error: e.message });
+    } /* Fin de try*/ catch (error) {
+      console.error(error.message);
+      res.status(413).send({ Error: error.message });
     } //Fin de catch
   } //Fin de callback de app.put /libro/prestar/:id
 ); //Fin de app.put /libro/prestar/:id
@@ -592,6 +603,11 @@ app.put(
    */
 
     try {
+      //Verifica que id no sea null
+      if (!req.params.id) {
+        throw new Error("Faltan datos: id no puede ser null");
+      }
+
       //Verifica que existe
       let query = "SELECT * FROM libros WHERE id = ?";
       let respuesta = await qy(query, [req.params.id]);
@@ -610,10 +626,9 @@ app.put(
       query = "UPDATE libros SET persona_id = null WHERE id = ?";
       respuesta = await qy(query, [req.params.id]);
       res.send({ mensaje: "Se realizó la devolución correctamente" });
-      //⇙ Fin de try
-    } catch (e) {
-      console.error(e.message);
-      res.status(413).send({ Error: e.message });
+    } /* Fin de try*/ catch (error) {
+      console.error(error.message);
+      res.status(413).send({ Error: error.message });
     } //Fin de catch
   } //Fin de callback de app.put/libro/devolver/:id
 ); //Fin de app.put/libro/devolver/:id
@@ -626,6 +641,12 @@ app.delete(
   "ese libro esta prestado no se puede borrar"
    */
     try {
+      //Verifica que id no es nulo
+
+      if (!req.params.id) {
+        throw new Error("Faltan datos: id no puede ser nulo");
+      }
+
       //Verifica que el libro existe
 
       let query = "SELECT * FROM libros WHERE id = ?";
@@ -647,11 +668,9 @@ app.delete(
       respuesta = await qy(query, [req.params.id]);
 
       res.send({ mensaje: "Se realizó la eliminación correctamente" });
-
-      //⇙ Fin de try
-    } catch (e) {
-      console.error(e.message);
-      res.status(413).send({ Error: e.message });
+    } /* Fin de try*/ catch (error) {
+      console.error(error.message);
+      res.status(413).send({ Error: error.message });
     } //Fin de catch
   } //Fin de callback de app.delete /libro/:id
 ); //Fin de app.delete /libro/:id
