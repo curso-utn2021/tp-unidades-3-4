@@ -51,7 +51,7 @@ app.post(
       query = "INSERT INTO categorias (nombre) VALUES (?)";
       respuesta = await qy(query, [req.body.nombre.toUpperCase()]);
       res.send({ id: respuesta.insertId, nombre: req.body.nombre.toUpperCase() });
-    } /*Fin de try*/ catch (e) {
+    } /*Fin de try*/ /* Fin de try*/ catch (e) {
       console.error(e.message);
       res.status(413).send({ Error: e.message });
     } //Fin de catch
@@ -69,9 +69,7 @@ app.get(
       //Envía la respuesta
       console.log(respuesta);
       res.send(respuesta);
-
-      //⇙ Fin de try
-    } catch (e) {
+    } /* Fin de try*/ catch (e) {
       console.error(e.message);
       res.status(413).send({ Error: e.message });
     } //Fin de catch
@@ -99,9 +97,7 @@ app.get(
       }
 
       res.send(respuesta);
-
-      //⇙ Fin de try
-    } catch (e) {
+    } /* Fin de try*/ catch (e) {
       console.error(e.message);
       res.status(413).send({ Error: e.message });
     } //Fin de catch
@@ -142,8 +138,7 @@ app.delete(
       query = "DELETE FROM categorias WHERE id = ?";
       respuesta = await qy(query, [req.params.id]);
       res.status(200).send({ "Se borró correctamente": respuesta.affectedRows });
-      //⇙ Fin de try
-    } catch (e) {
+    } /* Fin de try*/ catch (e) {
       console.error(e.message);
       res.status(413).send({ mensaje: e.message });
     } //Fin de catch
@@ -201,11 +196,9 @@ JSON de prueba para copiar y pegar en postman
     // Envía la respuesta
 
     res.send(respuesta);
-
-    //⇙ Fin de try
-  } catch (e) {
-    console.error(e.message);
-    res.status(413).send({ Error: e.message });
+  } /*Fin de try*/ /* Fin de try*/ catch (error) {
+    console.error(error.message);
+    res.status(413).send({ Error: error.message });
   } //Fin de catch
 });
 
@@ -223,9 +216,7 @@ app.get("/persona", async (req, res) => {
       //Si length de respuesta == 0 envía status 413 + array vacío (respuesta)
       res.status(413).send(respuesta);
     }
-
-    //⇙ Fin de try
-  } catch (error) {
+  } /* Fin de try*/ catch (error) {
     console.error(e.message);
     res.status(413).send({ Error: error.message });
   } //Fin de catch
@@ -254,8 +245,7 @@ app.get("/persona/:id", async (req, res) => {
     // Si la persona existe procede enviar los datos
 
     res.send(respuesta);
-    //⇙ Fin de try
-  } catch (error) {
+  } /* Fin de try*/ catch (error) {
     console.error(error.message);
     res.status(413).send({ Error: error.message });
   } //Fin de catch
@@ -308,8 +298,7 @@ app.put(
 
       // Envía la respuesta
       res.send(respuesta);
-      //⇙ Fin de try
-    } catch (error) {
+    } /* Fin de try*/ catch (error) {
       console.error(error.message);
       res.status(413).send({ Error: error.message });
     } //Fin de catch
@@ -349,9 +338,7 @@ app.delete(
       respuesta = await qy(query, [req.params.id]);
 
       res.send({ mensaje: "Se borró correctamente" });
-
-      //⇙ Fin de try
-    } catch {
+    } /* Fin de try*/ catch (error) {
       console.error(error.message);
       res.status(413).send({ Error: error.message });
     } //Fin de catch
@@ -434,11 +421,9 @@ app.post(
 
       //Envía la respuesta
       res.send(respuesta);
-
-      //⇙ Fin de try
-    } catch (e) {
-      console.error(e.message);
-      res.status(413).send({ Error: e.message });
+    } /* Fin de try*/ catch (error) {
+      console.error(error.message);
+      res.status(413).send({ Error: error.message });
     } //Fin de catch
   } //Fin de callback de app.post /libro
 ); //Fin de app.post /libro
@@ -462,9 +447,7 @@ app.get(
         //si length de respuesta == 0 envío status 413 + array vacío (respuesta)
         res.status(413).send(respuesta);
       }
-
-      //⇙ Fin de try
-    } catch (error) {
+    } /* Fin de try*/ catch (error) {
       console.error(error.message);
       res.status(413).send({ Error: error.message });
     } //Fin de catch
@@ -498,9 +481,7 @@ app.get(
       //Si el libro existe procede enviar la respuesta
 
       res.send(respuesta);
-
-      //⇙ Fin de try
-    } catch (error) {
+    } /* Fin de try*/ catch (error) {
       console.error(error.message);
       res.status(413).send({ Error: error.message });
     } //Fin de catch
@@ -556,8 +537,7 @@ app.put(
 
       //Envía la respuesta
       res.send(respuesta);
-      //⇙ Fin de try
-    } catch (error) {
+    } /* Fin de try*/ catch (error) {
       console.error(error.message);
       res.status(413).send({ Error: error.message });
     } //Fin de catch
@@ -607,9 +587,7 @@ app.put(
       respuesta = await qy(query, [req.body.persona_id, req.params.id]);
 
       res.send({ mensaje: "se prestó correctamente" });
-
-      //⇙ Fin de try
-    } catch (error) {
+    } /* Fin de try*/ catch (error) {
       console.error(error.message);
       res.status(413).send({ Error: error.message });
     } //Fin de catch
@@ -648,8 +626,7 @@ app.put(
       query = "UPDATE libros SET persona_id = null WHERE id = ?";
       respuesta = await qy(query, [req.params.id]);
       res.send({ mensaje: "Se realizó la devolución correctamente" });
-      //⇙ Fin de try
-    } catch (error) {
+    } /* Fin de try*/ catch (error) {
       console.error(error.message);
       res.status(413).send({ Error: error.message });
     } //Fin de catch
@@ -691,11 +668,9 @@ app.delete(
       respuesta = await qy(query, [req.params.id]);
 
       res.send({ mensaje: "Se realizó la eliminación correctamente" });
-
-      //⇙ Fin de try
-    } catch (e) {
-      console.error(e.message);
-      res.status(413).send({ Error: e.message });
+    } /* Fin de try*/ catch (error) {
+      console.error(error.message);
+      res.status(413).send({ Error: error.message });
     } //Fin de catch
   } //Fin de callback de app.delete /libro/:id
 ); //Fin de app.delete /libro/:id
