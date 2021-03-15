@@ -6,6 +6,9 @@ const util = require("util");
 
 const app = express();
 
+const cors= require ('cors');
+app.use(cors());
+
 var conexion = mysql.createConnection({
   host: "localhost",
   user: "root",
@@ -33,14 +36,14 @@ app.post(
   "faltan datos", "ese nombre de categoria ya existe", "error inesperado" */
     try {
       // verifica que no falten datos
-      if (!req.body.nombre) {
+      if (!req.body.nombre.trim()) {
         throw new Error("Faltan datos: no se definió el nombre");
       }
 
       // verifica que la categoría no existe
 
       let query = "SELECT * FROM categorias WHERE nombre = ?";
-      let respuesta = await qy(query, [req.body.nombre.toUpperCase()]);
+      let respuesta = await qy(query, [req.body.nombre.trim().toUpperCase()]);
       if (respuesta.length > 0) {
         throw new Error("Esta categoria ya existe");
       }
@@ -49,8 +52,8 @@ app.post(
       //procede la creación de la categoría
 
       query = "INSERT INTO categorias (nombre) VALUES (?)";
-      respuesta = await qy(query, [req.body.nombre.toUpperCase()]);
-      res.send({ id: respuesta.insertId, nombre: req.body.nombre.toUpperCase() });
+      respuesta = await qy(query, [req.body.nombre.trim().toUpperCase()]);
+      res.send({ id: respuesta.insertId, nombre: req.body.nombre.trim().toUpperCase() });
     } /*Fin de try*/ /* Fin de try*/ catch (e) {
       console.error(e.message);
       res.status(413).send({ Error: e.message });
@@ -166,14 +169,14 @@ JSON de prueba para copiar y pegar en postman
   try {
     // Verifica que no haya nulos
 
-    if (!req.body.nombre || !req.body.apellido || !req.body.email || !req.body.alias) {
+    if (!req.body.nombre.trim() || !req.body.apellido.trim() || !req.body.email.trim() || !req.body.alias.trim()) {
       throw new Error("Faltan datos: nombre y/o apellido y/o email y/o alias son nulos");
     }
 
     //Verifica que el email no se encuentre ya registrado
 
     let query = "SELECT * FROM personas WHERE email = ?";
-    let respuesta = await qy(query, [req.body.email.toUpperCase()]);
+    let respuesta = await qy(query, [req.body.email.trim().toUpperCase()]);
     if (respuesta.length > 0) {
       throw new Error("El email ya se encuentra registrado");
     }
@@ -182,16 +185,16 @@ JSON de prueba para copiar y pegar en postman
 
     query = "INSERT INTO personas (nombre, apellido, email, alias) values ( ?, ?, ?, ?)";
     respuesta = await qy(query, [
-      req.body.nombre.toUpperCase(),
-      req.body.apellido.toUpperCase(),
-      req.body.email.toUpperCase(),
-      req.body.alias.toUpperCase(),
+      req.body.nombre.trim().toUpperCase(),
+      req.body.apellido.trim().toUpperCase(),
+      req.body.email.trim().toUpperCase(),
+      req.body.alias.trim().toUpperCase(),
     ]);
 
     // Hecha la inserción, recupera los datos con el id asignado
 
     query = "SELECT * FROM personas WHERE email = ?";
-    respuesta = await qy(query, [req.body.email.toUpperCase()]);
+    respuesta = await qy(query, [req.body.email.trim().toUpperCase()]);
 
     // Envía la respuesta
 
@@ -270,7 +273,7 @@ app.put(
     try {
       //Verifica que no haya datos nulos en los campos requeridos
 
-      if (!req.body.nombre || !req.body.apellido || !req.body.alias) {
+      if (!req.body.nombre.trim() || !req.body.apellido.trim() || !req.body.alias.trim()) {
         throw new Error("Datos nulos en campos requeridos nombre y/o apellido y/o alias");
       }
 
@@ -287,9 +290,9 @@ app.put(
 
       query = "UPDATE personas SET nombre = ?, apellido = ?, alias = ? WHERE id = ?";
       respuesta = await qy(query, [
-        req.body.nombre.toUpperCase(),
-        req.body.apellido.toUpperCase(),
-        req.body.alias.toUpperCase(),
+        req.body.nombre.trim().toUpperCase(),
+        req.body.apellido.trim().toUpperCase(),
+        req.body.alias.trim().toUpperCase(),
         req.params.id,
       ]);
 
@@ -372,13 +375,13 @@ app.post(
   */
     try {
       //Verifica que no ingresen campos nulos (nombre y categoría)
-      if (!req.body.nombre || !req.body.categoria_id) {
+      if (!req.body.nombre.trim() || !req.body.categoria_id) {
         throw new Error("Nombre y categoría son datos obligatorios");
       }
       //Verifica que no exista el libro previamente
 
       let query = "SELECT * FROM libros WHERE nombre = ?";
-      let respuesta = await qy(query, [req.body.nombre.toUpperCase()]);
+      let respuesta = await qy(query, [req.body.nombre.trim().toUpperCase()]);
       if (respuesta.length > 0) {
         throw new Error("Ese libro ya existe");
       }
@@ -406,8 +409,8 @@ app.post(
       //procede insertar el registro
       query = "INSERT INTO libros (nombre, descripcion, categoria_id, persona_id) VALUES (?,?,?,?)";
       respuesta = await qy(query, [
-        req.body.nombre.toUpperCase(),
-        req.body.descripcion.toUpperCase(),
+        req.body.nombre.trim().toUpperCase(),
+        req.body.descripcion.trim().toUpperCase(),
         req.body.categoria_id,
         req.body.persona_id,
       ]);
@@ -518,7 +521,7 @@ app.put(
       //Verifica que el nombre y categoría recibidos son nulos,
       //ya que sólo se puede cambiar la descripción
 
-      if (req.body.nombre || req.body.categoria || req.body.persona_id) {
+      if (req.body.nombre.trim() || req.body.categoria.trim() || req.body.persona_id) {
         throw new Error(
           "Sólo se puede modificar la descripción del libro, campos nombre, categoria_id y persona_id deben ser nulos"
         );
@@ -528,7 +531,7 @@ app.put(
       //(de la descripción)
 
       query = "UPDATE libros SET descripcion = ? WHERE id = ?";
-      respuesta = await qy(query, [req.body.descripcion.toUpperCase(), req.params.id]);
+      respuesta = await qy(query, [req.body.descripcion.trim().toUpperCase(), req.params.id]);
 
       //Prepara la respuesta
 
