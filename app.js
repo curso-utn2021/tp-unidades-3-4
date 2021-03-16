@@ -36,9 +36,11 @@ app.post(
   "faltan datos", "ese nombre de categoria ya existe", "error inesperado" */
     try {
       // verifica que no falten datos
-      if (!req.body.nombre.trim()) {
+      if (!req.body.nombre || !req.body.nombre.trim()) {
         throw new Error("Faltan datos: no se definió el nombre");
-      }
+      } 
+
+
 
       // verifica que la categoría no existe
 
@@ -169,7 +171,8 @@ JSON de prueba para copiar y pegar en postman
   try {
     // Verifica que no haya nulos
 
-    if (!req.body.nombre.trim() || !req.body.apellido.trim() || !req.body.email.trim() || !req.body.alias.trim()) {
+    if (!req.body.nombre || !req.body.apellido || !req.body.email || !req.body.alias || 
+    !req.body.nombre.trim() || !req.body.apellido.trim() || !req.body.email.trim() || !req.body.alias.trim()) {
       throw new Error("Faltan datos: nombre y/o apellido y/o email y/o alias son nulos");
     }
 
@@ -273,7 +276,7 @@ app.put(
     try {
       //Verifica que no haya datos nulos en los campos requeridos
 
-      if (!req.body.nombre.trim() || !req.body.apellido.trim() || !req.body.alias.trim()) {
+      if (!req.body.nombre || !req.body.apellido || !req.body.alias || !req.body.nombre.trim() || !req.body.apellido.trim() || !req.body.alias.trim()) {
         throw new Error("Datos nulos en campos requeridos nombre y/o apellido y/o alias");
       }
 
@@ -375,9 +378,9 @@ app.post(
   */
     try {
       //Verifica que no ingresen campos nulos (nombre y categoría)
-      if (!req.body.nombre.trim() || !req.body.categoria_id) {
+      if (!req.body.nombre || !req.body.nombre.trim() || !req.body.categoria_id) {
         throw new Error("Nombre y categoría son datos obligatorios");
-      }
+      } 
       //Verifica que no exista el libro previamente
 
       let query = "SELECT * FROM libros WHERE nombre = ?";
@@ -403,6 +406,9 @@ app.post(
         }
       }
 
+      // Verifica si hay descripcion o debe generar una.
+      const descripcion = req.body.descripcion ? req.body.descripcion.trim().toUpperCase() : "";
+
       //Si no hay campos nulos, ni el libro existe previamente y la categoría existe
       // y persona_id es nulo (el libro no «nace» ya prestado) o
       // si nace ya prestado el id del prestatario corresponde a una persona existente
@@ -410,7 +416,7 @@ app.post(
       query = "INSERT INTO libros (nombre, descripcion, categoria_id, persona_id) VALUES (?,?,?,?)";
       respuesta = await qy(query, [
         req.body.nombre.trim().toUpperCase(),
-        req.body.descripcion.trim().toUpperCase(),
+        descripcion,
         req.body.categoria_id,
         req.body.persona_id,
       ]);
@@ -518,10 +524,16 @@ app.put(
         throw new Error("No se encuentra ese libro");
       }
 
+      //Verifica que la descripción no sea nula
+      if(!req.body.descripcion && !(req.body.descripcion == "")){
+        throw new Error("Faltan datos: descripcion no puede ser null");
+      }
+
+
       //Verifica que el nombre y categoría recibidos son nulos,
       //ya que sólo se puede cambiar la descripción
 
-      if (req.body.nombre.trim() || req.body.categoria.trim() || req.body.persona_id) {
+      if ((req.body.nombre && req.body.nombre.trim()) || req.body.categoria_id || req.body.persona_id) {
         throw new Error(
           "Sólo se puede modificar la descripción del libro, campos nombre, categoria_id y persona_id deben ser nulos"
         );
