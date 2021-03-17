@@ -6,7 +6,7 @@ const util = require("util");
 
 const app = express();
 
-const cors= require ('cors');
+const cors = require("cors");
 app.use(cors());
 
 var conexion = mysql.createConnection({
@@ -38,9 +38,7 @@ app.post(
       // verifica que no falten datos
       if (!req.body.nombre || !req.body.nombre.trim()) {
         throw new Error("Faltan datos: no se definió el nombre");
-      } 
-
-
+      }
 
       // verifica que la categoría no existe
 
@@ -56,9 +54,9 @@ app.post(
       query = "INSERT INTO categorias (nombre) VALUES (?)";
       respuesta = await qy(query, [req.body.nombre.trim().toUpperCase()]);
       res.send({ id: respuesta.insertId, nombre: req.body.nombre.trim().toUpperCase() });
-    } /*Fin de try*/ /* Fin de try*/ catch (e) {
-      console.error(e.message);
-      res.status(413).send({ Error: e.message });
+    } /*Fin de try*/ /* Fin de try*/ catch (error) {
+      console.error(error.message);
+      res.status(413).send({ Error: error.message });
     } //Fin de catch
   } //Fin de callback de app.post /categoria
 ); // fin de app.post /categoria
@@ -74,9 +72,9 @@ app.get(
       //Envía la respuesta
       console.log(respuesta);
       res.send(respuesta);
-    } /* Fin de try*/ catch (e) {
-      console.error(e.message);
-      res.status(413).send({ Error: e.message });
+    } /* Fin de try*/ catch (error) {
+      console.error(error.message);
+      res.status(413).send({ Error: error.message });
     } //Fin de catch
   } //Fin de callback de app.get /categoria
 ); //Fin de app.get/categoria
@@ -102,9 +100,9 @@ app.get(
       }
 
       res.send(respuesta);
-    } /* Fin de try*/ catch (e) {
-      console.error(e.message);
-      res.status(413).send({ Error: e.message });
+    } /* Fin de try*/ catch (error) {
+      console.error(error.message);
+      res.status(413).send({ Error: error.message });
     } //Fin de catch
   } // fin de callback de app.get /categoria/:id
 ); //Fin de app.get /categoria/:id
@@ -143,9 +141,9 @@ app.delete(
       query = "DELETE FROM categorias WHERE id = ?";
       respuesta = await qy(query, [req.params.id]);
       res.status(200).send({ "Se borró correctamente": respuesta.affectedRows });
-    } /* Fin de try*/ catch (e) {
-      console.error(e.message);
-      res.status(413).send({ mensaje: e.message });
+    } /* Fin de try*/ catch (error) {
+      console.error(error.message);
+      res.status(413).send({ mensaje: error.message });
     } //Fin de catch
   } //Fin de callback de app.delete
 ); // fin de app.delete
@@ -171,8 +169,16 @@ JSON de prueba para copiar y pegar en postman
   try {
     // Verifica que no haya nulos
 
-    if (!req.body.nombre || !req.body.apellido || !req.body.email || !req.body.alias || 
-    !req.body.nombre.trim() || !req.body.apellido.trim() || !req.body.email.trim() || !req.body.alias.trim()) {
+    if (
+      !req.body.nombre ||
+      !req.body.apellido ||
+      !req.body.email ||
+      !req.body.alias ||
+      !req.body.nombre.trim() ||
+      !req.body.apellido.trim() ||
+      !req.body.email.trim() ||
+      !req.body.alias.trim()
+    ) {
       throw new Error("Faltan datos: nombre y/o apellido y/o email y/o alias son nulos");
     }
 
@@ -276,7 +282,14 @@ app.put(
     try {
       //Verifica que no haya datos nulos en los campos requeridos
 
-      if (!req.body.nombre || !req.body.apellido || !req.body.alias || !req.body.nombre.trim() || !req.body.apellido.trim() || !req.body.alias.trim()) {
+      if (
+        !req.body.nombre ||
+        !req.body.apellido ||
+        !req.body.alias ||
+        !req.body.nombre.trim() ||
+        !req.body.apellido.trim() ||
+        !req.body.alias.trim()
+      ) {
         throw new Error("Datos nulos en campos requeridos nombre y/o apellido y/o alias");
       }
 
@@ -380,7 +393,7 @@ app.post(
       //Verifica que no ingresen campos nulos (nombre y categoría)
       if (!req.body.nombre || !req.body.nombre.trim() || !req.body.categoria_id) {
         throw new Error("Nombre y categoría son datos obligatorios");
-      } 
+      }
       //Verifica que no exista el libro previamente
 
       let query = "SELECT * FROM libros WHERE nombre = ?";
@@ -525,10 +538,9 @@ app.put(
       }
 
       //Verifica que la descripción no sea nula
-      if(!req.body.descripcion && !(req.body.descripcion == "")){
+      if (!req.body.descripcion && !(req.body.descripcion == "")) {
         throw new Error("Faltan datos: descripcion no puede ser null");
       }
-
 
       //Verifica que el nombre y categoría recibidos son nulos,
       //ya que sólo se puede cambiar la descripción
