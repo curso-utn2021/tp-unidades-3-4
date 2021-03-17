@@ -1,0 +1,12 @@
+Hemos dejado los comentarios con la consigna teniendo en cuenta que el 
+evaluador no sólo corrige trabajos de este curso sino también de otros cursos de 
+otras temáticas y por lo tanto puede servirle tener un ayudamemoria.
+
+También hemos dejado en cada caso un JSON de prueba para que al probar el algoritmo
+desde postman no haya que crear un nuevo JSON de cero.
+
+También hemos dejado los comentarios indicando el final de cada bloque y función
+porque tuvimos problemas con poner mal una instrucción y que se ejecutaran dos 
+res.send en una misma función, y teniendo en cuenta que algunos TP tienen como 
+base TP's anteriores, para el caso de que este TP fuera la base de otros futuros TP's
+hemos decidido dejar esos comentarios.
