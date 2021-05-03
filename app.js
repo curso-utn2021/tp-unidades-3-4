@@ -61,6 +61,51 @@ app.post(
   } //Fin de callback de app.post /categoria
 ); // fin de app.post /categoria
 
+app.put(
+  "/categoria/:id",
+  async (req, res) => {
+    /*   recibe: {nombre: string} retorna: status: 200, {id: numerico, nombre: string} - 
+  status: 413, {mensaje: <descripcion del error>} que puede ser: 
+  "faltan datos", "ese nombre de categoria ya existe", "error inesperado" */
+    try {
+      // verifica que no falten datos
+      if (!req.body.nombre || !req.body.nombre.trim()) {
+        throw new Error("Faltan datos: no se definió el nombre");
+      }
+
+      const nuevoNombre = (req.body.nombre.trim().toUpperCase());
+
+      // verifica que la categoría no existe
+      let query = "SELECT * FROM categorias WHERE id = ?";
+      let respuesta = await qy(query, [req.params.id]);
+      if (respuesta.length < 1) {
+        throw new Error("El id de la categoria es invalido");
+      }
+
+
+      query = "SELECT * FROM categorias WHERE nombre = ?";
+      respuesta = await qy(query, [nuevoNombre]);
+      if (respuesta.length > 0) {
+        throw new Error("Esta categoria ya existe");
+      }
+
+      // Si pasó chequeos de que no falten datos y que la categoría no exista previamente
+      //procede la edición de la categoría
+
+
+      query = "UPDATE categorias SET nombre = ? WHERE id = ?";
+
+      respuesta = await qy(query, [nuevoNombre, req.params.id]);
+
+      res.send({ mensaje: "Se actualizo correctamente el nombre de la categoria" });
+
+    } /*Fin de try*/ /* Fin de try*/ catch (error) {
+      console.error(error.message);
+      res.status(413).send({ Error: error.message });
+    } //Fin de catch
+  } //Fin de callback de app.post /categoria
+); // fin de app.post /categoria
+
 app.get(
   "/categoria",
   async (req, res) => {
@@ -510,6 +555,40 @@ app.get(
   } //Fin de callback de app.gett /libro/:id
 ); //Fin de app.gett /libro/:id
 
+app.get(
+  "/libro/categoria_id/:id",
+  async (req, res) => {
+    /*  devuelve 200 {id: numero, nombre:string, descripcion:string, categoria_id:numero, 
+      persona_id:numero/null} y 
+      status 413, {mensaje: <descripcion del error>} "error inesperado", 
+      "no se encuentra ese libro"
+
+ */
+    try {
+      //Verifica que id no viene nulo
+
+      if (!req.params.id) {
+        throw new Error("Faltan datos: id no puede ser null");
+      }
+
+      // Verifica que el libro existe y lanzar error si no
+
+      let query = "SELECT * FROM libros WHERE categoria_id = ?";
+      let respuesta = await qy(query, [req.params.id]);
+      if (respuesta.length == 0) {
+        throw new Error("Esta categoria no tiene libros");
+      }
+
+      //Si el libro existe procede enviar la respuesta
+
+      res.send(respuesta);
+    } /* Fin de try*/ catch (error) {
+      console.error(error.message);
+      res.status(413).send({ Error: error.message });
+    } //Fin de catch
+  } //Fin de callback de app.gett /libro/:id
+); //Fin de app.gett /libro/:id
+
 app.put(
   "/libro/:id",
   async (req, res) => {
@@ -702,6 +781,6 @@ app.delete(
   } //Fin de callback de app.delete /libro/:id
 ); //Fin de app.delete /libro/:id
 
-app.listen(3000, () => {
-  console.log("app escuchando puerto 3000");
+app.listen(3001, () => {
+  console.log("app escuchando puerto 3001");
 });
